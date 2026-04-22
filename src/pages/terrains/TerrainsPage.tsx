@@ -1,26 +1,35 @@
 import { useState, useMemo } from 'react';
+import { useAsync } from '@/hooks/useAsync';
 import {
-  souscriptionsTerrain,
-  paiementsTerrain,
-  getPaiementsTerrainBySouscription,
-  getMembreById,
-} from '@/data/mockData';
-import type { SouscriptionTerrain } from '@/types';
+  fetchMembres,
+  fetchSouscriptionsTerrain,
+  fetchPaiementsTerrain,
+  fetchPaiementsTerrainBySouscription,
+} from '@/lib/queries';
+import type { Membre, SouscriptionTerrain, PaiementTerrain } from '@/types';
 import { LABELS_VERSEMENT, LABELS_MODE } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
+import Spinner from '@/components/Spinner';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
-// ─── Détail d'une souscription ────────────────────────────────────────────────
+// ─── Panneau de détail ────────────────────────────────────────────────────────
 function DetailSouscription({
   souscription,
+  membres,
   onClose,
+  onPaiementAdded,
 }: {
   souscription: SouscriptionTerrain;
+  membres: Membre[];
   onClose: () => void;
+  onPaiementAdded: () => void;
 }) {
-  const membre = getMembreById(souscription.membre_id);
-  const paiements = getPaiementsTerrainBySouscription(souscription.id);
+  const membre = membres.find(m => m.id === souscription.membre_id);
+  const { data: paiements, loading, refetch } = useAsync(
+    () => fetchPaiementsTerrainBySouscription(souscription.id),
+    [souscription.id]
+  );
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-start justify-end z-50" onClick={onClose}>
@@ -31,7 +40,9 @@ function DetailSouscription({
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
-            <p className="text-xs text-gray-400">{membre?.id_membre} · {souscription.nb_terrains} terrain{souscription.nb_terrains > 1 ? 's' : ''}</p>
+            <p className="text-xs text-gray-400">
+              {membre?.id_membre} · {souscription.nb_terrains} terrain{souscription.nb_terrains > 1 ? 's' : ''}
+            </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
         </div>
@@ -57,8 +68,7 @@ function DetailSouscription({
           </div>
           <div>
             <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>Progression</span>
-              <span>{souscription.pourcentage}%</span>
+              <span>Progression</span><span>{souscription.pourcentage}%</span>
             </div>
             <ProgressBar value={souscription.pourcentage} />
           </div>
@@ -72,13 +82,15 @@ function DetailSouscription({
 
         <div className="p-6 flex-1">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Historique des versements ({paiements.length})
+            Historique des versements ({paiements?.length ?? '…'})
           </p>
-          {paiements.length === 0 ? (
+          {loading ? (
+            <Spinner />
+          ) : !paiements?.length ? (
             <p className="text-sm text-gray-400 text-center py-8">Aucun versement enregistré</p>
           ) : (
             <div className="space-y-2">
-              {paiements.map(p => (
+              {paiements.map((p: PaiementTerrain) => (
                 <div key={p.id} className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-gray-900">
@@ -100,7 +112,10 @@ function DetailSouscription({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
-          <button className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+          <button
+            onClick={() => { refetch(); onPaiementAdded(); }}
+            className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+          >
             + Enregistrer un versement
           </button>
         </div>
@@ -109,16 +124,17 @@ function DetailSouscription({
   );
 }
 
-// ─── Ligne de souscription ────────────────────────────────────────────────────
+// ─── Ligne souscription ───────────────────────────────────────────────────────
 function SouscriptionRow({
   s,
+  membres,
   onSelect,
 }: {
   s: SouscriptionTerrain;
+  membres: Membre[];
   onSelect: (s: SouscriptionTerrain) => void;
 }) {
-  const membre = getMembreById(s.membre_id);
-  const nbPaiements = getPaiementsTerrainBySouscription(s.id).length;
+  const membre = membres.find(m => m.id === s.membre_id);
 
   return (
     <tr
@@ -126,22 +142,17 @@ function SouscriptionRow({
       onClick={() => onSelect(s)}
     >
       <td className="py-3 px-4">
-        <div>
-          <p className="text-sm font-semibold text-gray-900">{membre?.prenom} {membre?.nom}</p>
-          <p className="text-xs text-gray-400">{membre?.id_membre}</p>
-        </div>
+        <p className="text-sm font-semibold text-gray-900">{membre?.prenom} {membre?.nom}</p>
+        <p className="text-xs text-gray-400">{membre?.id_membre}</p>
       </td>
       <td className="py-3 px-4 text-sm text-gray-700 text-center font-medium">{s.nb_terrains}</td>
       <td className="py-3 px-4 text-sm text-green-700 font-semibold">{formatCurrency(s.montant_verse)}</td>
       <td className="py-3 px-4 text-sm text-amber-700 font-semibold">{formatCurrency(s.reste_a_verser)}</td>
       <td className="py-3 px-4 min-w-[120px]">
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>{s.pourcentage}%</span>
-            <span>{nbPaiements} vers.</span>
-          </div>
-          <ProgressBar value={s.pourcentage} />
+        <div className="flex justify-between text-xs text-gray-400 mb-1">
+          <span>{s.pourcentage}%</span>
         </div>
+        <ProgressBar value={s.pourcentage} />
       </td>
       <td className="py-3 px-4">
         <Badge variant={s.statut === 'solde' ? 'green' : s.pourcentage >= 75 ? 'blue' : s.pourcentage >= 40 ? 'amber' : 'red'}>
@@ -156,40 +167,46 @@ function SouscriptionRow({
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function TerrainsPage() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch]           = useState('');
   const [filtreStatut, setFiltreStatut] = useState<'tous' | 'en_cours' | 'solde'>('tous');
-  const [selected, setSelected] = useState<SouscriptionTerrain | null>(null);
+  const [selected, setSelected]       = useState<SouscriptionTerrain | null>(null);
 
-  const souscriptionsAvecMembre = useMemo(() =>
-    souscriptionsTerrain.map(s => ({
-      ...s,
-      membre: getMembreById(s.membre_id),
-    })), []);
+  const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
+  const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsTerrain);
+  const { data: paiements,     loading: lp               } = useAsync(fetchPaiementsTerrain);
+
+  const loading = lm || ls || lp;
+
+  const refetchAll = () => { rm(); rs(); };
 
   const filtered = useMemo(() => {
-    return souscriptionsAvecMembre.filter(s => {
+    if (!souscriptions || !membres) return [];
+    return souscriptions.filter(s => {
+      const membre = membres.find(m => m.id === s.membre_id);
       const q = search.toLowerCase();
       const matchSearch =
         !q ||
-        (s.membre?.nom ?? '').toLowerCase().includes(q) ||
-        (s.membre?.prenom ?? '').toLowerCase().includes(q) ||
-        (s.membre?.id_membre ?? '').toLowerCase().includes(q);
+        (membre?.nom ?? '').toLowerCase().includes(q) ||
+        (membre?.prenom ?? '').toLowerCase().includes(q) ||
+        (membre?.id_membre ?? '').toLowerCase().includes(q);
       const matchStatut = filtreStatut === 'tous' || s.statut === filtreStatut;
       return matchSearch && matchStatut;
     });
-  }, [search, filtreStatut, souscriptionsAvecMembre]);
+  }, [souscriptions, membres, search, filtreStatut]);
 
   const stats = useMemo(() => {
-    const total_terrains = souscriptionsTerrain.reduce((a, s) => a + s.nb_terrains, 0);
-    const total_verse    = souscriptionsTerrain.reduce((a, s) => a + s.montant_verse, 0);
-    const total_reste    = souscriptionsTerrain.reduce((a, s) => a + s.reste_a_verser, 0);
-    const nb_soldes      = souscriptionsTerrain.filter(s => s.statut === 'solde').length;
-    return { total_terrains, total_verse, total_reste, nb_soldes };
-  }, []);
+    const list = souscriptions ?? [];
+    return {
+      total_terrains: list.reduce((a, s) => a + s.nb_terrains, 0),
+      total_verse:    list.reduce((a, s) => a + s.montant_verse, 0),
+      total_reste:    list.reduce((a, s) => a + s.reste_a_verser, 0),
+      nb_soldes:      list.filter(s => s.statut === 'solde').length,
+    };
+  }, [souscriptions]);
 
   const encaisseurs = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>();
-    paiementsTerrain.forEach(p => {
+    (paiements ?? []).forEach(p => {
       const key = `${p.encaisseur_prenom} ${p.encaisseur_nom}`;
       const prev = map.get(key) ?? { total: 0, count: 0 };
       map.set(key, { total: prev.total + p.montant, count: prev.count + 1 });
@@ -197,23 +214,29 @@ export default function TerrainsPage() {
     return Array.from(map.entries())
       .map(([nom, v]) => ({ nom, ...v }))
       .sort((a, b) => b.total - a.total);
-  }, []);
+  }, [paiements]);
 
   return (
     <div className="space-y-5 max-w-6xl">
-      <div>
-        <h2 className="text-xl font-black text-gray-900">Terrains Simples</h2>
-        <p className="text-sm text-gray-400 mt-1">
-          Suivi des souscriptions et versements · Objectif : 460 000 FCFA / terrain
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-gray-900">Terrains Simples</h2>
+          <p className="text-sm text-gray-400 mt-1">
+            Suivi des souscriptions et versements · Objectif : 460 000 FCFA / terrain
+          </p>
+        </div>
+        <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
+          Actualiser
+        </button>
       </div>
 
+      {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Terrains souscrits', value: stats.total_terrains,          color: 'text-gray-900' },
+          { label: 'Terrains souscrits', value: stats.total_terrains,              color: 'text-gray-900' },
           { label: 'Total encaissé',     value: formatCurrency(stats.total_verse),  color: 'text-green-600', small: true },
           { label: 'Reste à encaisser',  value: formatCurrency(stats.total_reste),  color: 'text-amber-600', small: true },
-          { label: 'Dossiers SOLDÉS',    value: stats.nb_soldes,                color: 'text-blue-600' },
+          { label: 'Dossiers SOLDÉS',    value: stats.nb_soldes,                    color: 'text-blue-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className={`font-black ${s.color} ${s.small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
@@ -223,6 +246,7 @@ export default function TerrainsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Table */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-50 flex flex-col sm:flex-row gap-3">
             <input
@@ -249,30 +273,43 @@ export default function TerrainsPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
-                  <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Nbre</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Versé</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Reste</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4 min-w-[120px]">Avancement</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 text-center text-sm text-gray-400">Aucune souscription trouvée</td>
+          {loading ? (
+            <Spinner />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
+                    <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Nbre</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Versé</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Reste</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4 min-w-[110px]">Avancement</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Date</th>
                   </tr>
-                ) : (
-                  filtered.map(s => <SouscriptionRow key={s.id} s={s} onSelect={setSelected} />)
-                )}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-sm text-gray-400">
+                        Aucune souscription trouvée
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map(s => (
+                      <SouscriptionRow
+                        key={s.id}
+                        s={s}
+                        membres={membres ?? []}
+                        onSelect={setSelected}
+                      />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
             <span className="text-xs text-gray-400">{filtered.length} souscription{filtered.length > 1 ? 's' : ''}</span>
@@ -282,60 +319,71 @@ export default function TerrainsPage() {
           </div>
         </div>
 
+        {/* Encaisseurs */}
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="p-4 border-b border-gray-50">
             <p className="text-sm font-semibold text-gray-900">Encaisseurs</p>
             <p className="text-xs text-gray-400 mt-0.5">Classement par montant collecté</p>
           </div>
-          <div className="p-4 space-y-3">
-            {encaisseurs.map(e => {
-              const pct = Math.round((e.total / stats.total_verse) * 100);
-              return (
-                <div key={e.nom}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-medium text-gray-800">{e.nom}</span>
-                    <span className="text-gray-400">{e.count} vers.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ProgressBar value={pct} className="flex-1" />
-                    <span className="text-xs text-gray-500 w-10 text-right">{pct}%</span>
-                  </div>
-                  <p className="text-xs text-green-700 font-semibold mt-0.5">{formatCurrency(e.total)}</p>
-                </div>
-              );
-            })}
-          </div>
+          {loading ? (
+            <Spinner />
+          ) : (
+            <div className="p-4 space-y-3">
+              {encaisseurs.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">Aucun versement enregistré</p>
+              ) : (
+                encaisseurs.map(e => {
+                  const pct = stats.total_verse > 0 ? Math.round((e.total / stats.total_verse) * 100) : 0;
+                  return (
+                    <div key={e.nom}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-medium text-gray-800">{e.nom}</span>
+                        <span className="text-gray-400">{e.count} vers.</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ProgressBar value={pct} className="flex-1" />
+                        <span className="text-xs text-gray-500 w-10 text-right">{pct}%</span>
+                      </div>
+                      <p className="text-xs text-green-700 font-semibold mt-0.5">{formatCurrency(e.total)}</p>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
 
-          <div className="p-4 border-t border-gray-50">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Modes de paiement</p>
-            {(() => {
-              const modes: Record<string, number> = {};
-              paiementsTerrain.forEach(p => {
-                modes[p.mode_paiement] = (modes[p.mode_paiement] ?? 0) + p.montant;
-              });
-              const total = Object.values(modes).reduce((a, b) => a + b, 0);
-              const colors: Record<string, string> = {
-                wave: 'bg-blue-500',
-                orange_money: 'bg-orange-400',
-                banque: 'bg-green-500',
-                autres: 'bg-gray-400',
-              };
-              return Object.entries(modes)
-                .sort(([, a], [, b]) => b - a)
-                .map(([mode, montant]) => (
+          {/* Modes de paiement */}
+          {!loading && paiements && paiements.length > 0 && (
+            <div className="p-4 border-t border-gray-50">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Modes de paiement</p>
+              {(() => {
+                const modes: Record<string, number> = {};
+                paiements.forEach(p => { modes[p.mode_paiement] = (modes[p.mode_paiement] ?? 0) + p.montant; });
+                const total = Object.values(modes).reduce((a, b) => a + b, 0);
+                const colors: Record<string, string> = {
+                  wave: 'bg-blue-500', orange_money: 'bg-orange-400',
+                  banque: 'bg-green-500', autres: 'bg-gray-400',
+                };
+                return Object.entries(modes).sort(([, a], [, b]) => b - a).map(([mode, montant]) => (
                   <div key={mode} className="flex items-center gap-2 mb-2">
                     <div className={`w-2 h-2 rounded-full ${colors[mode] ?? 'bg-gray-400'}`} />
                     <span className="text-xs text-gray-600 flex-1">{LABELS_MODE[mode as keyof typeof LABELS_MODE] ?? mode}</span>
                     <span className="text-xs text-gray-400">{Math.round((montant / total) * 100)}%</span>
                   </div>
                 ));
-            })()}
-          </div>
+              })()}
+            </div>
+          )}
         </div>
       </div>
 
       {selected && (
-        <DetailSouscription souscription={selected} onClose={() => setSelected(null)} />
+        <DetailSouscription
+          souscription={selected}
+          membres={membres ?? []}
+          onClose={() => setSelected(null)}
+          onPaiementAdded={refetchAll}
+        />
       )}
     </div>
   );

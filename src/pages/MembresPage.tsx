@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
-import { membres, souscriptionsTerrain, souscriptionsLogement } from '@/data/mockData';
+import { useAsync } from '@/hooks/useAsync';
+import { fetchMembres } from '@/lib/queries';
 import type { Membre } from '@/types';
 import Badge from '@/components/Badge';
+import Spinner from '@/components/Spinner';
 import { formatDate } from '@/lib/utils';
 
 type Filtre = 'tous' | 'terrains' | 'logements' | 'les_deux' | 'inactif';
@@ -11,10 +13,8 @@ function getInitiales(nom: string, prenom: string) {
 }
 
 function MemberRow({ m }: { m: Membre }) {
-  const hasTerrain = m.modules.includes('terrains');
+  const hasTerrain  = m.modules.includes('terrains');
   const hasLogement = m.modules.includes('logements');
-  const nbTerrains = souscriptionsTerrain.filter(s => s.membre_id === m.id).reduce((acc, s) => acc + s.nb_terrains, 0);
-  const dossiers = souscriptionsLogement.filter(s => s.membre_id === m.id).length;
 
   return (
     <tr className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
@@ -34,13 +34,8 @@ function MemberRow({ m }: { m: Membre }) {
         <div className="flex gap-1 flex-wrap">
           {hasTerrain  && <Badge variant="blue">Terrains</Badge>}
           {hasLogement && <Badge variant="purple">Logements</Badge>}
+          {!hasTerrain && !hasLogement && <span className="text-xs text-gray-300">—</span>}
         </div>
-      </td>
-      <td className="py-3 px-4 text-sm text-gray-600 text-center">
-        {hasTerrain ? nbTerrains : '—'}
-      </td>
-      <td className="py-3 px-4 text-sm text-gray-600 text-center">
-        {hasLogement ? dossiers : '—'}
       </td>
       <td className="py-3 px-4">
         <Badge variant={m.statut === 'actif' ? 'green' : 'gray'}>
@@ -56,7 +51,21 @@ export default function MembresPage() {
   const [search, setSearch] = useState('');
   const [filtre, setFiltre] = useState<Filtre>('tous');
 
+  const { data: membres, loading, error, refetch } = useAsync(fetchMembres);
+
+  const stats = useMemo(() => {
+    if (!membres) return { total: 0, actifs: 0, terrains: 0, logements: 0, les_deux: 0 };
+    return {
+      total:     membres.length,
+      actifs:    membres.filter(m => m.statut === 'actif').length,
+      terrains:  membres.filter(m => m.modules.includes('terrains')).length,
+      logements: membres.filter(m => m.modules.includes('logements')).length,
+      les_deux:  membres.filter(m => m.modules.includes('terrains') && m.modules.includes('logements')).length,
+    };
+  }, [membres]);
+
   const filtered = useMemo(() => {
+    if (!membres) return [];
     return membres.filter(m => {
       const q = search.toLowerCase();
       const matchSearch =
@@ -67,46 +76,45 @@ export default function MembresPage() {
         (m.telephone ?? '').includes(q);
 
       const matchFiltre =
-        filtre === 'tous'     ? true :
-        filtre === 'terrains' ? (m.modules.includes('terrains') && !m.modules.includes('logements')) :
-        filtre === 'logements'? (m.modules.includes('logements') && !m.modules.includes('terrains')) :
-        filtre === 'les_deux' ? (m.modules.includes('terrains') && m.modules.includes('logements')) :
+        filtre === 'tous'      ? true :
+        filtre === 'terrains'  ? (m.modules.includes('terrains') && !m.modules.includes('logements')) :
+        filtre === 'logements' ? (m.modules.includes('logements') && !m.modules.includes('terrains')) :
+        filtre === 'les_deux'  ? (m.modules.includes('terrains') && m.modules.includes('logements')) :
         m.statut === 'inactif';
 
       return matchSearch && matchFiltre;
     });
-  }, [search, filtre]);
-
-  const stats = useMemo(() => ({
-    total:    membres.length,
-    actifs:   membres.filter(m => m.statut === 'actif').length,
-    terrains: membres.filter(m => m.modules.includes('terrains')).length,
-    logements:membres.filter(m => m.modules.includes('logements')).length,
-    les_deux: membres.filter(m => m.modules.includes('terrains') && m.modules.includes('logements')).length,
-  }), []);
+  }, [membres, search, filtre]);
 
   const filtres: { id: Filtre; label: string; count: number }[] = [
-    { id: 'tous',      label: 'Tous',         count: stats.total },
-    { id: 'terrains',  label: 'Terrains seul',count: stats.terrains - stats.les_deux },
+    { id: 'tous',      label: 'Tous',          count: stats.total },
+    { id: 'terrains',  label: 'Terrains seul', count: stats.terrains - stats.les_deux },
     { id: 'logements', label: 'Logements seul',count: stats.logements - stats.les_deux },
-    { id: 'les_deux',  label: 'Les deux',     count: stats.les_deux },
-    { id: 'inactif',   label: 'Inactifs',     count: stats.total - stats.actifs },
+    { id: 'les_deux',  label: 'Les deux',      count: stats.les_deux },
+    { id: 'inactif',   label: 'Inactifs',      count: stats.total - stats.actifs },
   ];
 
   return (
     <div className="space-y-5 max-w-6xl">
-      {/* En-tête */}
-      <div>
-        <h2 className="text-xl font-black text-gray-900">Membres</h2>
-        <p className="text-sm text-gray-400 mt-1">Annuaire complet des membres du GIE</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-gray-900">Membres</h2>
+          <p className="text-sm text-gray-400 mt-1">Annuaire complet des membres du GIE</p>
+        </div>
+        <button
+          onClick={refetch}
+          className="text-xs text-gray-400 hover:text-green-600 transition-colors"
+        >
+          Actualiser
+        </button>
       </div>
 
       {/* Stats rapides */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total membres', value: stats.total, color: 'text-gray-900' },
-          { label: 'Actifs',        value: stats.actifs, color: 'text-green-600' },
-          { label: 'Terrains',      value: stats.terrains, color: 'text-blue-600' },
+          { label: 'Total membres', value: stats.total,     color: 'text-gray-900' },
+          { label: 'Actifs',        value: stats.actifs,    color: 'text-green-600' },
+          { label: 'Terrains',      value: stats.terrains,  color: 'text-blue-600' },
           { label: 'Logements',     value: stats.logements, color: 'text-purple-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
@@ -116,7 +124,7 @@ export default function MembresPage() {
         ))}
       </div>
 
-      {/* Barre de recherche + filtres */}
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-50 flex flex-col sm:flex-row gap-3">
           <input
@@ -143,42 +151,47 @@ export default function MembresPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
-                <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Téléphone</th>
-                <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Modules</th>
-                <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Terrains</th>
-                <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Dossiers</th>
-                <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
-                <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Adhésion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-sm text-gray-400">
-                    Aucun membre correspondant
-                  </td>
+        {loading ? (
+          <Spinner />
+        ) : error ? (
+          <div className="py-12 text-center">
+            <p className="text-sm text-red-500">{error}</p>
+            <button onClick={refetch} className="mt-3 text-xs text-green-600 hover:underline">Réessayer</button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Téléphone</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Modules</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Adhésion</th>
                 </tr>
-              ) : (
-                filtered.map(m => <MemberRow key={m.id} m={m} />)
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                      Aucun membre correspondant
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map(m => <MemberRow key={m.id} m={m} />)
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {filtered.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div className="px-4 py-3 border-t border-gray-50 text-xs text-gray-400">
             {filtered.length} membre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
           </div>
         )}
       </div>
 
-      {/* Bouton ajouter */}
       <div className="flex justify-end">
         <button className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
           + Nouveau membre
