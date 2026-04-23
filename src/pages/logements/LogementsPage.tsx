@@ -110,7 +110,7 @@ function DetailLogement({
   return (
     <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
       <div className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
@@ -207,10 +207,10 @@ function DetailLogement({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex gap-2">
+        <div className="sticky bottom-0 bg-white border-t border-emerald-100 p-4 flex gap-2">
           <button
             onClick={() => setVersementType('mensualite')}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Mensualité
           </button>
@@ -244,7 +244,7 @@ function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membre
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
+      className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
       onClick={() => onSelect(s)}
     >
       <div className="flex items-start justify-between mb-3">
@@ -368,7 +368,7 @@ export default function LogementsPage() {
           { label: 'Villa F2', count: stats.nb_f2, verse: stats.verse_f2, color: 'text-blue-600' },
           { label: 'Villa F3', count: stats.nb_f3, verse: stats.verse_f3, color: 'text-purple-600' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
+          <div key={s.label} className="bg-white rounded-xl border border-emerald-100 p-4">
             <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>
             <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
             {s.verse > 0 && (
@@ -402,7 +402,7 @@ export default function LogementsPage() {
           placeholder="Rechercher un membre…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-green-400 placeholder:text-gray-300 bg-white"
+          className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-emerald-400 placeholder:text-gray-300 bg-white"
         />
         <div className="flex gap-1 flex-wrap">
           {filtresType.map(f => (
@@ -432,7 +432,7 @@ export default function LogementsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
         >
           + Nouveau dossier
         </button>
@@ -440,7 +440,7 @@ export default function LogementsPage() {
 
       {/* Grille de dossiers */}
       {loading ? <Spinner /> : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-12 text-center">
           <p className="text-sm text-gray-400">Aucun dossier correspondant</p>
         </div>
       ) : (

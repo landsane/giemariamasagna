@@ -201,7 +201,7 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Prix du terrain (FCFA)</p>
               <input type="text" placeholder="ex : 8 000 000" value={prixInput}
                 onChange={e => setPrix(e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
               />
             </div>
           )}
@@ -225,7 +225,7 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Membre</p>
             <select value={membreId} onChange={e => setMembreId(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 bg-white"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 bg-white"
             >
               <option value="">— Sélectionner un membre —</option>
               {membresActifs.map(m => (
@@ -238,7 +238,7 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Date de souscription</p>
             <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400"
             />
           </div>
 
@@ -251,7 +251,7 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={saving || prixTotal <= 0 || !membreId}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
             {saving ? 'Enregistrement…' : 'Créer le dossier'}
           </button>
         </div>

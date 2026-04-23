@@ -97,7 +97,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto" onClick={onClose}>
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:my-4 max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
           <div>
             <h3 className="font-black text-gray-900">{editing ? 'Modifier l\'offre' : 'Nouvelle offre'}</h3>
             <p className="text-xs text-gray-400 mt-0.5">Programme PICLOM · GIE Mariama SAGNA</p>
@@ -112,7 +112,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             <div className="grid grid-cols-3 gap-2">
               {TYPES.map(t => (
                 <button key={t.id} onClick={() => handleTypeChange(t.id)}
-                  className={`border-2 rounded-xl p-3 text-left transition-all ${type === t.id ? t.color : 'border-gray-100 hover:border-gray-200'}`}
+                  className={`border-2 rounded-xl p-3 text-left transition-all ${type === t.id ? t.color : 'border-emerald-100 hover:border-gray-200'}`}
                 >
                   <p className="text-xs font-bold text-gray-900">{t.label}</p>
                   <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{t.desc}</p>
@@ -128,7 +128,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
               <div className="grid grid-cols-2 gap-2">
                 {(['F2', 'F3'] as const).map(st => (
                   <button key={st} onClick={() => setSousType(st)}
-                    className={`border-2 rounded-xl py-2.5 text-center font-bold text-sm transition-all ${sousType === st ? 'border-purple-400 bg-purple-50 text-purple-800' : 'border-gray-100 text-gray-600 hover:border-gray-200'}`}
+                    className={`border-2 rounded-xl py-2.5 text-center font-bold text-sm transition-all ${sousType === st ? 'border-purple-400 bg-purple-50 text-purple-800' : 'border-emerald-100 text-gray-600 hover:border-gray-200'}`}
                   >
                     Villa {st}
                   </button>
@@ -142,7 +142,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom de l'offre *</label>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)}
               placeholder={type === 'terrain_simple' ? 'Terrain Simple – Dakar' : type === 'logement' ? 'Villa F2 – Ndoyenne 01' : 'Terrain TF – Sébikhotane'}
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -151,7 +151,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Localisation *</label>
             <input type="text" value={localisation} onChange={e => setLocalisation(e.target.value)}
               placeholder="ex : Ndoyenne 01 – Sébikhotane"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -160,7 +160,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Description <span className="normal-case font-normal text-gray-400">(optionnel)</span></label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
               placeholder="Détails supplémentaires sur l'offre…"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300 resize-none"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300 resize-none"
             />
           </div>
 
@@ -172,14 +172,14 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
               </label>
               <input type="text" value={prixInput} onChange={e => setPrixInput(e.target.value)}
                 placeholder={type === 'terrain_simple' ? '460 000' : type === 'logement' && sousType === 'F3' ? '20 000 000' : '16 000 000'}
-                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
               />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Frais de dossier (FCFA)</label>
               <input type="text" value={fraisInput} onChange={e => setFraisInput(e.target.value)}
                 placeholder="0"
-                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Acompte (%)</label>
               <div className="mt-1 relative">
                 <input type="number" min="0" max="100" value={tauxInput} onChange={e => setTauxInput(e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 pr-7 outline-none focus:border-green-400"
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 pr-7 outline-none focus:border-emerald-400"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
               </div>
@@ -198,7 +198,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nbre de mensualités</label>
               <input type="number" min="1" value={nbMensInput} onChange={e => setNbMensInput(e.target.value)}
-                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400"
               />
             </div>
           </div>
@@ -232,13 +232,13 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
           {error && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+        <div className="px-6 py-4 border-t border-emerald-100 flex gap-3">
           <button onClick={onClose}
             className="flex-1 border border-gray-200 text-gray-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={saving || prixUnitaire <= 0 || !nom.trim()}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
             {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer l\'offre'}
           </button>
         </div>
@@ -377,7 +377,7 @@ export default function OffresPage() {
         </div>
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm"
         >
           + Nouvelle offre
         </button>
@@ -408,7 +408,7 @@ export default function OffresPage() {
         {SECTIONS.map(s => (
           <button key={s.type}
             onClick={() => setFiltreType(filtreType === s.type ? 'tous' : s.type)}
-            className={`bg-white rounded-xl border p-4 text-left transition-all hover:shadow-sm ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-gray-100'}`}
+            className={`bg-white rounded-xl border p-4 text-left transition-all hover:shadow-sm ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
           >
             <p className={`text-2xl font-black ${s.color}`}>{parType[s.type].length}</p>
             <p className="text-xs font-semibold text-gray-700 mt-0.5">{s.label}</p>
@@ -419,7 +419,7 @@ export default function OffresPage() {
 
       {/* Liste */}
       {loading ? <Spinner /> : error ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-8 text-center">
           <p className="text-sm text-red-500">{error}</p>
           <button onClick={refetch} className="mt-2 text-xs text-green-600 hover:underline">Réessayer</button>
         </div>

@@ -225,7 +225,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={saving || !membreId || !offreId || prixTotal <= 0}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
             {saving ? 'Enregistrement…' : 'Créer le dossier'}
           </button>
         </div>

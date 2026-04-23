@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Map, Building2, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,19 +11,38 @@ const NAV = [
   { to: '/offres',    icon: Tag,             label: 'Offres',     short: 'Offres'     },
 ];
 
+function Logo() {
+  const [hasError, setHasError] = useState(false);
+  if (hasError) {
+    return (
+      <div className="w-9 h-9 rounded-full bg-emerald-400 flex items-center justify-center text-[#064E3B] font-black text-sm flex-shrink-0">
+        G
+      </div>
+    );
+  }
+  return (
+    <img
+      src="/logo.png"
+      alt="Logo GIE"
+      className="w-9 h-9 rounded-full object-cover border border-emerald-400/40 flex-shrink-0"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 export default function Layout() {
   return (
-    <div className="flex flex-col min-h-screen min-h-dvh bg-gray-50">
+    <div className="flex flex-col min-h-screen min-h-dvh">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between h-13 px-4 max-w-7xl mx-auto">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-xs"
-              style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}
-            >G</div>
-            <p className="font-black text-sm text-gray-900 leading-none">GIE Mariama SAGNA</p>
+      <header className="sticky top-0 z-30" style={{ background: '#064E3B' }}>
+        <div className="flex items-center justify-between h-14 px-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2.5">
+            <Logo />
+            <div>
+              <p className="font-black text-sm text-white leading-none">GIE Mariama SAGNA</p>
+              <p className="text-[10px] text-emerald-300 leading-none mt-0.5">Coopérative d'Habitat</p>
+            </div>
           </div>
           <PageTitle />
         </div>
@@ -37,8 +57,8 @@ export default function Layout() {
 
       {/* ── Barre de navigation bas ── */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex items-stretch"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t border-emerald-900"
+        style={{ background: '#064E3B', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         {NAV.map(({ to, icon: Icon, short }) => (
           <NavLink
@@ -46,16 +66,16 @@ export default function Layout() {
             to={to}
             className={({ isActive }) => cn(
               'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] transition-colors relative',
-              isActive ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'
+              isActive ? 'text-emerald-300' : 'text-emerald-100/40 hover:text-emerald-100/70'
             )}
           >
             {({ isActive }) => (
               <>
                 <Icon className={cn('w-5 h-5 transition-transform', isActive && 'scale-110')} />
-                <span className={cn('text-[10px] font-medium leading-none', isActive ? 'text-green-600' : 'text-gray-400')}>
+                <span className={cn('text-[10px] font-medium leading-none', isActive ? 'text-emerald-300' : 'text-emerald-100/40')}>
                   {short}
                 </span>
-                {isActive && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-500 rounded-full" />}
+                {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-400 rounded-full" />}
               </>
             )}
           </NavLink>
@@ -70,6 +90,6 @@ function PageTitle() {
   const { pathname } = useLocation();
   const match = NAV.find(n => pathname.startsWith(n.to));
   return (
-    <p className="text-sm font-semibold text-gray-500">{match?.label ?? ''}</p>
+    <p className="text-sm font-semibold text-emerald-200">{match?.label ?? ''}</p>
   );
 }

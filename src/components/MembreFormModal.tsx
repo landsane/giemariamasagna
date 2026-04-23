@@ -116,7 +116,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Prénom *</label>
             <input type="text" value={prenom} onChange={e => setPrenom(e.target.value)}
               placeholder="Ibrahima"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom *</label>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)}
               placeholder="DIALLO"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -134,7 +134,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Téléphone</label>
             <input type="tel" value={telephone} onChange={e => setTel(e.target.value)}
               placeholder="77 123 4567"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="prenom.nom@exemple.com"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -156,7 +156,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={saving || !nom.trim() || !prenom.trim()}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
             {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le membre'}
           </button>
         </div>

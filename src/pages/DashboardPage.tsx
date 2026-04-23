@@ -22,7 +22,6 @@ export default function DashboardPage() {
 
   const loading = lm || lt || ll || lpt || lpl;
 
-  // KPIs
   const nbMembresActifs      = (membres ?? []).filter(m => m.statut === 'actif').length;
   const nbTerrainsTotal      = (souscTerrain ?? []).reduce((a, s) => a + s.nb_terrains, 0);
   const nbDossiersLog        = (souscLogement ?? []).length;
@@ -32,38 +31,36 @@ export default function DashboardPage() {
   const totalMontantTotal    = (souscTerrain ?? []).reduce((a, s) => a + s.montant_total, 0);
   const avancementGlobal     = totalMontantTotal > 0 ? Math.round((totalVerseTerrains / totalMontantTotal) * 100) : 0;
 
-  // Derniers paiements terrains
   const derniersVersements = [...(paiTerrains ?? [])]
     .sort((a, b) => new Date(b.date_versement).getTime() - new Date(a.date_versement).getTime())
     .slice(0, 5);
 
-  // Dossiers logements en cours
   const dossiersEnCours = (souscLogement ?? []).filter(s => s.statut === 'en_cours').slice(0, 4);
 
   const CARDS = [
-    { icon: Users,      label: 'Membres actifs',    value: nbMembresActifs,           color: '#3B82F6', bg: '#EFF6FF', to: '/membres' },
-    { icon: Map,        label: 'Terrains souscrits', value: nbTerrainsTotal,           color: '#16A34A', bg: '#F0FDF4', to: '/terrains' },
-    { icon: Building2,  label: 'Dossiers logements', value: nbDossiersLog,             color: '#7C3AED', bg: '#F5F3FF', to: '/logements' },
-    { icon: TrendingUp, label: 'Total encaissé',     value: formatCurrency(totalVerse),color: '#D97706', bg: '#FFFBEB', to: null, small: true },
+    { icon: Users,      label: 'Membres actifs',    value: nbMembresActifs,            color: '#2563EB', bg: '#EFF6FF', to: '/membres' },
+    { icon: Map,        label: 'Terrains souscrits', value: nbTerrainsTotal,            color: '#059669', bg: '#ECFDF5', to: '/terrains' },
+    { icon: Building2,  label: 'Dossiers logements', value: nbDossiersLog,              color: '#7C3AED', bg: '#F5F3FF', to: '/logements' },
+    { icon: TrendingUp, label: 'Total encaissé',     value: formatCurrency(totalVerse), color: '#D97706', bg: '#FFFBEB', to: null, small: true },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-black text-gray-900">Tableau de bord</h2>
-        <p className="text-sm text-gray-400 mt-1">Vue générale du GIE Mariama SAGNA</p>
+        <p className="text-sm text-gray-500 mt-1">Vue générale du GIE Mariama SAGNA</p>
       </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {CARDS.map(({ icon: Icon, label, value, color, bg, to, small }) => {
           const inner = (
-            <div className={`bg-white rounded-2xl border border-gray-100 p-5 transition-shadow ${to ? 'hover:shadow-md cursor-pointer' : ''}`}>
+            <div className={`bg-white rounded-2xl border border-emerald-100 p-5 transition-all ${to ? 'hover:shadow-md hover:border-emerald-200 cursor-pointer' : ''}`}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: bg }}>
                 <Icon className="w-5 h-5" style={{ color }} />
               </div>
               {loading
-                ? <div className="h-8 w-12 bg-gray-100 rounded animate-pulse mb-1" />
+                ? <div className="h-8 w-12 bg-emerald-50 rounded animate-pulse mb-1" />
                 : <p className={`font-black text-gray-900 ${small ? 'text-base' : 'text-2xl'}`}>{value}</p>
               }
               <p className="text-xs text-gray-400 mt-1">{label}</p>
@@ -75,13 +72,13 @@ export default function DashboardPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* Module Terrains */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Map className="w-4 h-4 text-green-600" />
+              <Map className="w-4 h-4 text-emerald-600" />
               <h3 className="font-semibold text-gray-900 text-sm">Terrains Simples</h3>
             </div>
-            <Link to="/terrains" className="text-xs text-green-600 hover:underline">Voir tout</Link>
+            <Link to="/terrains" className="text-xs text-emerald-600 hover:underline">Voir tout</Link>
           </div>
 
           {loading ? <Spinner /> : (
@@ -94,13 +91,13 @@ export default function DashboardPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-gray-50 rounded-lg p-2.5">
+                <div className="bg-emerald-50 rounded-lg p-2.5">
                   <p className="text-gray-400">Encaissé</p>
-                  <p className="font-bold text-green-700">{formatCurrency(totalVerseTerrains)}</p>
+                  <p className="font-bold text-emerald-700">{formatCurrency(totalVerseTerrains)}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-2.5">
+                <div className="bg-orange-50 rounded-lg p-2.5">
                   <p className="text-gray-400">Reste</p>
-                  <p className="font-bold text-amber-600">{formatCurrency(totalMontantTotal - totalVerseTerrains)}</p>
+                  <p className="font-bold text-orange-600">{formatCurrency(totalMontantTotal - totalVerseTerrains)}</p>
                 </div>
               </div>
 
@@ -116,7 +113,7 @@ export default function DashboardPage() {
                           <span className="text-gray-700 truncate">{membre?.prenom} {membre?.nom}</span>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             <span className="text-gray-400">{formatDate(p.date_versement)}</span>
-                            <span className="font-semibold text-green-700">{formatCurrency(p.montant)}</span>
+                            <span className="font-semibold text-emerald-700">{formatCurrency(p.montant)}</span>
                           </div>
                         </div>
                       );
@@ -133,7 +130,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Module Logements */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-purple-600" />
@@ -150,7 +147,7 @@ export default function DashboardPage() {
                   { label: 'Validés',   count: (souscLogement ?? []).filter(s => s.statut === 'valide').length },
                   { label: 'Attribués', count: (souscLogement ?? []).filter(s => s.statut === 'attribue').length },
                 ].map(item => (
-                  <div key={item.label} className="bg-gray-50 rounded-lg p-2.5 text-center">
+                  <div key={item.label} className="bg-purple-50/60 rounded-lg p-2.5 text-center">
                     <p className="font-black text-gray-900 text-base">{item.count}</p>
                     <p className="text-gray-400">{item.label}</p>
                   </div>
@@ -185,7 +182,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-gray-400 text-center py-2">Aucun dossier en cours</p>
               )}
 
-              <div className="bg-gray-50 rounded-lg p-2.5 text-xs">
+              <div className="bg-purple-50/60 rounded-lg p-2.5 text-xs">
                 <p className="text-gray-400">Total encaissé logements</p>
                 <p className="font-bold text-purple-700">{formatCurrency(totalVersePaiLog)}</p>
               </div>

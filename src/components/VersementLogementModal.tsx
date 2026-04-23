@@ -95,7 +95,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
               type="text"
               value={montant}
               onChange={e => setMontant(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400"
             />
           </div>
 
@@ -131,7 +131,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
               placeholder="N° transaction, chèque…"
               value={reference}
               onChange={e => setReference(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
 
@@ -144,7 +144,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
             Annuler
           </button>
           <button onClick={handleSubmit} disabled={saving}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>

@@ -125,7 +125,7 @@ function DetailSouscription({
         className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
@@ -199,10 +199,10 @@ function DetailSouscription({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
+        <div className="sticky bottom-0 bg-white border-t border-emerald-100 p-4">
           <button
             onClick={() => setShowVersement(true)}
-            className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Enregistrer un versement
           </button>
@@ -252,7 +252,7 @@ function DetailTerrainTF({
         className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full"
         onClick={e => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
@@ -323,10 +323,10 @@ function DetailTerrainTF({
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex gap-2">
+        <div className="sticky bottom-0 bg-white border-t border-emerald-100 p-4 flex gap-2">
           <button
             onClick={() => setVersementType('mensualite')}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Mensualité
           </button>
@@ -501,12 +501,12 @@ export default function TerrainsPage() {
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-emerald-100 p-4">
           <p className="text-2xl font-black text-blue-600">{stats.nb_simples}</p>
           <p className="text-xs text-gray-400 mt-0.5">Terrains Simples</p>
           {stats.verse_simple > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(stats.verse_simple)}</p>}
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-emerald-100 p-4">
           <p className="text-2xl font-black text-green-600">{statsTF.nb}</p>
           <p className="text-xs text-gray-400 mt-0.5">Terrains TF</p>
           {statsTF.verse > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(statsTF.verse)}</p>}
@@ -558,7 +558,7 @@ export default function TerrainsPage() {
           ))}
         </div>
         <button onClick={() => setShowNouveauDossier(true)}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
           + Nouveau dossier
         </button>
       </div>
@@ -571,7 +571,7 @@ export default function TerrainsPage() {
         )}
         <div className="space-y-4">
           {/* Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-emerald-100 overflow-hidden">
             <div className="p-4 border-b border-gray-50 flex gap-1 flex-wrap">
               {(['tous', 'en_cours', 'solde'] as const).map(f => (
                 <button key={f} onClick={() => setFiltreStatut(f)}
@@ -621,7 +621,7 @@ export default function TerrainsPage() {
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-100">
+                      <tr className="border-b border-emerald-100">
                         <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
                         <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Nbre</th>
                         <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Versé</th>
@@ -657,7 +657,7 @@ export default function TerrainsPage() {
           <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains TF</p>
         )}
         {ltf ? <Spinner /> : filteredTF.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <div className="bg-white rounded-2xl border border-emerald-100 p-10 text-center">
             <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
           </div>
         ) : (
@@ -668,7 +668,7 @@ export default function TerrainsPage() {
               const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
               return (
                 <div key={s.id}
-                  className="bg-white rounded-2xl border border-gray-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
+                  className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
                   onClick={() => setSelectedTF(s)}
                 >
                   <div className="flex items-start justify-between mb-3">

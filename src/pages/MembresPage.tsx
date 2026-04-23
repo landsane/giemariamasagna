@@ -113,7 +113,7 @@ function MembreCard({
   const nbOffres  = terrains.length + logements.length;
 
   return (
-    <div className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md ${membre.statut === 'inactif' ? 'opacity-60 border-gray-100' : 'border-gray-100'}`}>
+    <div className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md ${membre.statut === 'inactif' ? 'opacity-60 border-emerald-100' : 'border-emerald-100'}`}>
       <div className="flex items-start gap-3">
         <Avatar membre={membre} size="lg" />
         <div className="flex-1 min-w-0">
@@ -131,7 +131,7 @@ function MembreCard({
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[140px]">
+                  <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-emerald-100 overflow-hidden min-w-[140px]">
                     <button
                       onClick={() => { onEdit(membre); setShowMenu(false); }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -168,7 +168,7 @@ function MembreCard({
       </div>
 
       {nbOffres === 0 ? (
-        <p className="text-xs text-gray-300 text-center py-2 border border-dashed border-gray-100 rounded-xl">
+        <p className="text-xs text-gray-300 text-center py-2 border border-dashed border-emerald-100 rounded-xl">
           Aucune offre souscrite
         </p>
       ) : (
@@ -264,7 +264,7 @@ export default function MembresPage() {
           <p className="text-sm text-gray-400 mt-1">{stats.total} membres · {stats.actifs} actifs</p>
         </div>
         <button onClick={() => setShowNew(true)}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm whitespace-nowrap">
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm whitespace-nowrap">
           + Nouveau membre
         </button>
       </div>
@@ -300,7 +300,7 @@ export default function MembresPage() {
             { label: 'Multi-offres',     value: stats.les_deux,       color: 'text-amber-600' },
             { label: 'Actifs',           value: stats.actifs,         color: 'text-gray-900' },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-3 text-center">
+            <div key={s.label} className="bg-white rounded-xl border border-emerald-100 p-3 text-center">
               <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
               <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.label}</p>
             </div>
@@ -330,7 +330,7 @@ export default function MembresPage() {
 
       {/* Grille */}
       {loading ? <Spinner /> : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-12 text-center">
           <p className="text-sm text-gray-400">Aucun membre correspondant</p>
         </div>
       ) : (
