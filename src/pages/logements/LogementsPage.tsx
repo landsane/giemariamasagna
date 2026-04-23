@@ -36,17 +36,17 @@ function OffreActiveCard({ offre }: { offre: Offre }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div className="bg-white rounded-lg p-2 text-center">
           <p className="text-gray-400">Prix</p>
-          <p className="font-bold text-gray-900">{(offre.prix_unitaire / 1_000_000).toFixed(0)}M</p>
+          <p className="font-bold text-gray-900">{formatCurrency(offre.prix_unitaire)}</p>
         </div>
         {acompte > 0 && (
           <div className="bg-white rounded-lg p-2 text-center">
             <p className="text-gray-400">Acompte {Math.round(offre.taux_acompte * 100)}%</p>
-            <p className="font-bold text-amber-700">{(acompte / 1_000_000).toFixed(2)}M</p>
+            <p className="font-bold text-amber-700">{formatCurrency(acompte)}</p>
           </div>
         )}
         <div className="bg-white rounded-lg p-2 text-center">
           <p className="text-gray-400">Mensualité</p>
-          <p className="font-bold text-green-700">{(mensualite / 1_000).toFixed(0)}K</p>
+          <p className="font-bold text-green-700">{formatCurrency(mensualite)}</p>
         </div>
         <div className="bg-white rounded-lg p-2 text-center">
           <p className="text-gray-400">Durée</p>
@@ -54,7 +54,7 @@ function OffreActiveCard({ offre }: { offre: Offre }) {
         </div>
       </div>
       {offre.frais_dossier > 0 && (
-        <p className="text-xs text-gray-400">Frais de dossier : {(offre.frais_dossier / 1_000).toFixed(0)} 000 F</p>
+        <p className="text-xs text-gray-400">Frais de dossier : {formatCurrency(offre.frais_dossier)}</p>
       )}
     </div>
   );
@@ -310,12 +310,17 @@ export default function LogementsPage() {
 
   const stats = useMemo(() => {
     const list = souscriptions ?? [];
+    const totalVerse = (type: string) =>
+      list.filter(s => s.type_villa === type)
+          .reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0);
     return {
-      nb_f2:               list.filter(s => s.type_villa === 'F2').length,
-      nb_f3:               list.filter(s => s.type_villa === 'F3').length,
-      nb_terrain:          list.filter(s => s.type_villa === 'terrain').length,
-      total_acompte_verse: list.reduce((a, s) => a + s.acompte_verse, 0),
-      nb_valides:          list.filter(s => s.statut !== 'en_cours').length,
+      nb_f2:        list.filter(s => s.type_villa === 'F2').length,
+      nb_f3:        list.filter(s => s.type_villa === 'F3').length,
+      nb_terrain:   list.filter(s => s.type_villa === 'terrain').length,
+      verse_f2:     totalVerse('F2'),
+      verse_f3:     totalVerse('F3'),
+      verse_terrain: totalVerse('terrain'),
+      nb_valides:   list.filter(s => s.statut !== 'en_cours').length,
     };
   }, [souscriptions]);
 
@@ -342,16 +347,18 @@ export default function LogementsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Villa F2',       value: stats.nb_f2,               color: 'text-blue-600' },
-          { label: 'Villa F3',       value: stats.nb_f3,               color: 'text-purple-600' },
-          { label: 'Terrains TF',    value: stats.nb_terrain,          color: 'text-green-600' },
-          { label: 'Total encaissé', value: formatCurrency(totalPaiements), color: 'text-gray-900', small: true },
+          { label: 'Villa F2',    count: stats.nb_f2,      verse: stats.verse_f2,      color: 'text-blue-600' },
+          { label: 'Villa F3',    count: stats.nb_f3,      verse: stats.verse_f3,      color: 'text-purple-600' },
+          { label: 'Terrains TF', count: stats.nb_terrain, verse: stats.verse_terrain, color: 'text-green-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
-            <p className={`font-black ${s.color} ${(s as {small?: boolean}).small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
+            <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>
             <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+            {s.verse > 0 && (
+              <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(s.verse)}</p>
+            )}
           </div>
         ))}
       </div>
@@ -367,26 +374,6 @@ export default function LogementsPage() {
           </div>
         </div>
       )}
-
-      {/* Offre promoteur */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { type: 'F2',      label: 'Villa F2',   prix: '16 000 000', mensualite: '133 333', acompte: '1 280 000', color: 'border-blue-200 bg-blue-50/50' },
-          { type: 'F3',      label: 'Villa F3',   prix: '20 000 000', mensualite: '166 667', acompte: '1 600 000', color: 'border-purple-200 bg-purple-50/50' },
-          { type: 'terrain', label: 'Terrain TF', prix: 'Variable',   mensualite: 'Variable', acompte: '8% du prix', color: 'border-green-200 bg-green-50/50' },
-        ].map(v => (
-          <div key={v.type} className={`rounded-xl border p-4 ${v.color}`}>
-            <p className="text-sm font-black text-gray-900 mb-2">{v.label}</p>
-            <div className="grid grid-cols-3 gap-1.5 text-xs">
-              <div><p className="text-gray-400">Prix</p><p className="font-semibold">{v.prix}{v.type !== 'terrain' ? ' F' : ''}</p></div>
-              <div><p className="text-gray-400">Acompte</p><p className="font-semibold">{v.acompte}{v.type !== 'terrain' ? ' F' : ''}</p></div>
-              <div><p className="text-gray-400">Mensualité</p><p className="font-semibold">{v.mensualite}{v.type !== 'terrain' ? ' F' : ''}</p></div>
-            </div>
-            {v.type !== 'terrain' && <p className="text-xs text-gray-400 mt-2">Durée : 120 mois</p>}
-            {v.type === 'terrain' && <p className="text-xs text-gray-400 mt-2">Sites : Sébikhotane · Diender</p>}
-          </div>
-        ))}
-      </div>
 
       {/* Filtres */}
       <div className="flex flex-col sm:flex-row gap-3">
