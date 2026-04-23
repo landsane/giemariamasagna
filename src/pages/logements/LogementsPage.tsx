@@ -269,7 +269,7 @@ function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membre
 }
 
 // ─── Page principale ──────────────────────────────────────────────────────────
-type FiltreType = 'tous' | 'F2' | 'F3' | 'terrain';
+type FiltreType = 'tous' | 'F2' | 'F3';
 type FiltreStatut = 'tous' | 'en_cours' | 'valide' | 'attribue';
 
 export default function LogementsPage() {
@@ -285,16 +285,21 @@ export default function LogementsPage() {
   const { data: toutesOffres                              } = useAsync(fetchOffres);
 
   const offresActives = useMemo(
-    () => (toutesOffres ?? []).filter(o => (o.type === 'logement' || o.type === 'terrain_tf') && o.statut === 'active'),
+    () => (toutesOffres ?? []).filter(o => o.type === 'logement' && o.statut === 'active'),
     [toutesOffres]
   );
 
   const loading = lm || ls || lp;
   const refetchAll = () => { rm(); rs(); };
 
+  const logements = useMemo(
+    () => (souscriptions ?? []).filter(s => s.type_villa !== 'terrain'),
+    [souscriptions]
+  );
+
   const filtered = useMemo(() => {
-    if (!souscriptions || !membres) return [];
-    return souscriptions.filter(s => {
+    if (!logements || !membres) return [];
+    return logements.filter(s => {
       const membre = membres.find(m => m.id === s.membre_id);
       const q = search.toLowerCase();
       const matchSearch =
@@ -306,39 +311,38 @@ export default function LogementsPage() {
         (filtreStatut === 'tous' || s.statut === filtreStatut) &&
         (filtreType   === 'tous' || s.type_villa === filtreType);
     });
-  }, [souscriptions, membres, search, filtreStatut, filtreType]);
+  }, [logements, membres, search, filtreStatut, filtreType]);
 
   const stats = useMemo(() => {
-    const list = souscriptions ?? [];
+    const list = logements;
     const totalVerse = (type: string) =>
       list.filter(s => s.type_villa === type)
           .reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0);
     return {
-      nb_f2:        list.filter(s => s.type_villa === 'F2').length,
-      nb_f3:        list.filter(s => s.type_villa === 'F3').length,
-      nb_terrain:   list.filter(s => s.type_villa === 'terrain').length,
-      verse_f2:     totalVerse('F2'),
-      verse_f3:     totalVerse('F3'),
-      verse_terrain: totalVerse('terrain'),
-      nb_valides:   list.filter(s => s.statut !== 'en_cours').length,
+      nb_f2:    list.filter(s => s.type_villa === 'F2').length,
+      nb_f3:    list.filter(s => s.type_villa === 'F3').length,
+      verse_f2: totalVerse('F2'),
+      verse_f3: totalVerse('F3'),
     };
-  }, [souscriptions]);
+  }, [logements]);
 
   const totalPaiements = useMemo(() =>
-    (paiements ?? []).reduce((a, p) => a + p.montant, 0), [paiements]);
+    (paiements ?? []).filter(p => {
+      const s = (souscriptions ?? []).find(x => x.id === p.souscription_id);
+      return s && s.type_villa !== 'terrain';
+    }).reduce((a, p) => a + p.montant, 0), [paiements, souscriptions]);
 
   const filtresType: { id: FiltreType; label: string; count: number }[] = [
-    { id: 'tous',    label: 'Tous',         count: (souscriptions ?? []).length },
-    { id: 'F2',      label: 'Villa F2',     count: stats.nb_f2 },
-    { id: 'F3',      label: 'Villa F3',     count: stats.nb_f3 },
-    { id: 'terrain', label: 'Terrain TF',   count: stats.nb_terrain },
+    { id: 'tous', label: 'Tous',     count: logements.length },
+    { id: 'F2',   label: 'Villa F2', count: stats.nb_f2 },
+    { id: 'F3',   label: 'Villa F3', count: stats.nb_f3 },
   ];
 
   return (
     <div className="space-y-5 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-gray-900">Logements &amp; Terrains TF</h2>
+          <h2 className="text-xl font-black text-gray-900">Logements Sociaux</h2>
           <p className="text-sm text-gray-400 mt-1">Programme PICLOM 2026–2029 · Le Millénium 7SD</p>
         </div>
         <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
@@ -347,11 +351,10 @@ export default function LogementsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'Villa F2',    count: stats.nb_f2,      verse: stats.verse_f2,      color: 'text-blue-600' },
-          { label: 'Villa F3',    count: stats.nb_f3,      verse: stats.verse_f3,      color: 'text-purple-600' },
-          { label: 'Terrains TF', count: stats.nb_terrain, verse: stats.verse_terrain, color: 'text-green-600' },
+          { label: 'Villa F2', count: stats.nb_f2, verse: stats.verse_f2, color: 'text-blue-600' },
+          { label: 'Villa F3', count: stats.nb_f3, verse: stats.verse_f3, color: 'text-purple-600' },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>

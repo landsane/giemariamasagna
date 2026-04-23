@@ -49,7 +49,9 @@ export default function Layout() {
 
       {/* ── Contenu ── */}
       <main className="flex-1 p-3 sm:p-4 md:p-6 pb-24 lg:pb-6 overflow-x-hidden">
-        <Outlet />
+        <div className="mx-auto w-full max-w-7xl">
+          <Outlet />
+        </div>
       </main>
 
       {/* ── Barre de navigation bas (mobile / tablette) ── */}
