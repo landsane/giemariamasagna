@@ -474,6 +474,7 @@ export default function LogementsPage() {
       {showModal && (
         <NouveauDossierModal
           membres={membres ?? []}
+          offres={toutesOffres ?? []}
           onClose={() => setShowModal(false)}
           onCreated={refetchAll}
         />
