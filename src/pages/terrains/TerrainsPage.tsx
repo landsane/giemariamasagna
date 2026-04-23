@@ -446,9 +446,12 @@ export default function TerrainsPage() {
   }, [paiements]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
-      {/* ══ TERRAINS SIMPLES ══════════════════════════════════════════════════ */}
+      {/* ══ TERRAINS SIMPLES + TF côte à côte ════════════════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+
+      {/* ── Terrains Simples ── */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
@@ -488,9 +491,9 @@ export default function TerrainsPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {/* Table */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-50 flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
@@ -634,10 +637,10 @@ export default function TerrainsPage() {
             )}
           </div>
         </div>
-      </div>
+      </div>{/* fin Terrains Simples */}
 
-      {/* ══ TERRAINS TF ══════════════════════════════════════════════════════ */}
-      <div className="border-t-2 border-gray-100 pt-6 space-y-5">
+      {/* ── Terrains TF ── */}
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-black text-gray-900">Terrains TF</h2>
@@ -685,7 +688,7 @@ export default function TerrainsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {souscriptionsTF.map(s => {
               const m = (membres ?? []).find(mb => mb.id === s.membre_id);
               const totalVerse = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
@@ -719,7 +722,9 @@ export default function TerrainsPage() {
             })}
           </div>
         )}
-      </div>
+      </div>{/* fin Terrains TF */}
+
+      </div>{/* fin grid côte à côte */}
 
       {/* ── Panneaux ── */}
       {selected && (
@@ -741,6 +746,7 @@ export default function TerrainsPage() {
       {showDossierModal && (
         <NouveauDossierModal
           membres={membres ?? []}
+          initialType="terrain"
           onClose={() => setShowDossierModal(false)}
           onCreated={refetchAll}
         />

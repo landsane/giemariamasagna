@@ -339,7 +339,7 @@ export default function LogementsPage() {
   ];
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-gray-900">Logements Sociaux</h2>
@@ -351,7 +351,7 @@ export default function LogementsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Villa F2', count: stats.nb_f2, verse: stats.verse_f2, color: 'text-blue-600' },
           { label: 'Villa F3', count: stats.nb_f3, verse: stats.verse_f3, color: 'text-purple-600' },
@@ -364,6 +364,11 @@ export default function LogementsPage() {
             )}
           </div>
         ))}
+        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+          <p className="text-base font-black text-green-700">{formatCurrency(totalPaiements)}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Total encaissé</p>
+          <p className="text-xs text-gray-400 mt-1">{logements.length} dossier{logements.length > 1 ? 's' : ''}</p>
+        </div>
       </div>
 
       {/* Offres actives */}

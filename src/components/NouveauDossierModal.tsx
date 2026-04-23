@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
+  initialType?: TypeBien;
   onClose: () => void;
   onCreated: () => void;
 }
@@ -22,9 +23,9 @@ function prixDefaut(type: TypeBien) {
   return 0;
 }
 
-export default function NouveauDossierModal({ membres, onClose, onCreated }: Props) {
+export default function NouveauDossierModal({ membres, initialType, onClose, onCreated }: Props) {
   const [step, setStep]           = useState<1 | 2>(1);
-  const [type, setType]           = useState<TypeBien>('F2');
+  const [type, setType]           = useState<TypeBien>(initialType ?? 'F2');
   const [membreId, setMembreId]   = useState('');
   const [site, setSite]           = useState<SiteLogement>('ndoyenne');
   const [titre, setTitre]         = useState<TitreLogement>('TF');

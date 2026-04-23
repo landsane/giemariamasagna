@@ -356,7 +356,7 @@ export default function OffresPage() {
   ];
 
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-5">
       {/* En-tête */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -402,12 +402,12 @@ export default function OffresPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {filtreType === 'tous'
             ? SECTIONS.map(s => parType[s.type].length > 0 && (
                 <div key={s.type}>
-                  <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${s.color}`}>{s.label}</p>
-                  <div className="space-y-3">
+                  <p className={`text-xs font-bold uppercase tracking-wide mb-3 ${s.color}`}>{s.label}</p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     {parType[s.type].map(o => (
                       <OffreCard key={o.id} offre={o}
                         onToggle={() => handleToggle(o)}
@@ -417,12 +417,16 @@ export default function OffresPage() {
                   </div>
                 </div>
               ))
-            : affichees.map(o => (
-                <OffreCard key={o.id} offre={o}
-                  onToggle={() => handleToggle(o)}
-                  onEdit={() => { setEditing(o); setShowForm(true); }}
-                />
-              ))
+            : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  {affichees.map(o => (
+                    <OffreCard key={o.id} offre={o}
+                      onToggle={() => handleToggle(o)}
+                      onEdit={() => { setEditing(o); setShowForm(true); }}
+                    />
+                  ))}
+                </div>
+              )
           }
         </div>
       )}
