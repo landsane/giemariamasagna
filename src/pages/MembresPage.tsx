@@ -256,7 +256,7 @@ export default function MembresPage() {
   ];
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-5">
       {/* En-tête */}
       <div className="flex items-start justify-between gap-4">
         <div>
