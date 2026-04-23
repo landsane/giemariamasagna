@@ -492,7 +492,7 @@ export default function TerrainsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-gray-900">Terrains</h2>
-          <p className="text-sm text-gray-400 mt-1">Simples · Titre Foncier · GIE Maria Masagna</p>
+          <p className="text-sm text-gray-400 mt-1">Simples · Titre Foncier · GIE Mariama SAGNA</p>
         </div>
         <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
           Actualiser

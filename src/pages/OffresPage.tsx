@@ -100,7 +100,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="font-black text-gray-900">{editing ? 'Modifier l\'offre' : 'Nouvelle offre'}</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Programme PICLOM · GIE Maria Masagna</p>
+            <p className="text-xs text-gray-400 mt-0.5">Programme PICLOM · GIE Mariama SAGNA</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
         </div>

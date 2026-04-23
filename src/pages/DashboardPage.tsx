@@ -51,7 +51,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-black text-gray-900">Tableau de bord</h2>
-        <p className="text-sm text-gray-400 mt-1">Vue générale du GIE Maria Masagna</p>
+        <p className="text-sm text-gray-400 mt-1">Vue générale du GIE Mariama SAGNA</p>
       </div>
 
       {/* KPI cards */}

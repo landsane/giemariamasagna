@@ -95,7 +95,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="font-black text-gray-900">Nouveau dossier terrain</h3>
-            <p className="text-xs text-gray-400 mt-0.5">GIE Maria Masagna</p>
+            <p className="text-xs text-gray-400 mt-0.5">GIE Mariama SAGNA</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
         </div>

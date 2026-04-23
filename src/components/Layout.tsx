@@ -22,7 +22,7 @@ export default function Layout() {
               className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-xs"
               style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}
             >G</div>
-            <p className="font-black text-sm text-gray-900 leading-none">GIE Maria Masagna</p>
+            <p className="font-black text-sm text-gray-900 leading-none">GIE Mariama SAGNA</p>
           </div>
           <PageTitle />
         </div>
