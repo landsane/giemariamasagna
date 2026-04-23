@@ -10,12 +10,15 @@ import {
   fetchPaiementsLogementBySouscription,
   fetchOffres,
 } from '@/lib/queries';
-import type { Membre, SouscriptionTerrain, PaiementTerrain, SouscriptionLogement, PaiementLogement, Offre } from '@/types';
+import type { Membre, SouscriptionTerrain, PaiementTerrain, SouscriptionLogement, PaiementLogement, Offre, TypePaiementLogement } from '@/types';
 import { LABELS_VERSEMENT, LABELS_MODE, LABELS_SITE } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
+import NouveauSouscriptionTerrainModal from '@/components/NouveauSouscriptionTerrainModal';
+import VersementTerrainModal from '@/components/VersementTerrainModal';
+import VersementLogementModal from '@/components/VersementLogementModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
@@ -115,6 +118,7 @@ function DetailSouscription({
     () => fetchPaiementsTerrainBySouscription(souscription.id),
     [souscription.id]
   );
+  const [showVersement, setShowVersement] = useState(false);
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
@@ -198,13 +202,22 @@ function DetailSouscription({
 
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4">
           <button
-            onClick={() => { refetch(); onPaiementAdded(); }}
+            onClick={() => setShowVersement(true)}
             className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Enregistrer un versement
           </button>
         </div>
       </div>
+      {showVersement && (
+        <VersementTerrainModal
+          souscription={souscription}
+          membre={membre}
+          nextNumero={(paiements?.length ?? 0) + 1}
+          onClose={() => setShowVersement(false)}
+          onSaved={() => { refetch(); onPaiementAdded(); }}
+        />
+      )}
     </div>
   );
 }
@@ -232,6 +245,7 @@ function DetailTerrainTF({
     : 0;
   const totalVerse = souscription.acompte_verse + souscription.nb_mensualites_payees * souscription.mensualite;
   const totalPct   = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
+  const [versementType, setVersementType] = useState<TypePaiementLogement | null>(null);
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
@@ -312,19 +326,28 @@ function DetailTerrainTF({
 
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex gap-2">
           <button
-            onClick={() => { refetch(); onPaiementAdded(); }}
+            onClick={() => setVersementType('mensualite')}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Mensualité
           </button>
           <button
-            onClick={() => { refetch(); onPaiementAdded(); }}
+            onClick={() => setVersementType('acompte')}
             className="flex-1 border border-green-600 text-green-700 text-sm font-semibold py-2.5 rounded-xl hover:bg-green-50 transition-colors"
           >
             + Acompte
           </button>
         </div>
       </div>
+      {versementType && (
+        <VersementLogementModal
+          souscription={souscription}
+          membre={membre}
+          initialType={versementType}
+          onClose={() => setVersementType(null)}
+          onSaved={() => { refetch(); onPaiementAdded(); }}
+        />
+      )}
     </div>
   );
 }
@@ -374,12 +397,13 @@ function SouscriptionRow({
 type FiltreCategorie = 'tous' | 'simple' | 'tf';
 
 export default function TerrainsPage() {
-  const [search, setSearch]                     = useState('');
-  const [filtreCategorie, setFiltreCategorie]   = useState<FiltreCategorie>('tous');
-  const [filtreStatut, setFiltreStatut]         = useState<'tous' | 'en_cours' | 'solde'>('tous');
-  const [selected, setSelected]                 = useState<SouscriptionTerrain | null>(null);
-  const [selectedTF, setSelectedTF]             = useState<SouscriptionLogement | null>(null);
-  const [showDossierModal, setShowDossierModal] = useState(false);
+  const [search, setSearch]                           = useState('');
+  const [filtreCategorie, setFiltreCategorie]         = useState<FiltreCategorie>('tous');
+  const [filtreStatut, setFiltreStatut]               = useState<'tous' | 'en_cours' | 'solde'>('tous');
+  const [selected, setSelected]                       = useState<SouscriptionTerrain | null>(null);
+  const [selectedTF, setSelectedTF]                   = useState<SouscriptionLogement | null>(null);
+  const [showDossierModal, setShowDossierModal]       = useState(false);
+  const [showSouscriptionModal, setShowSouscriptionModal] = useState(false);
 
   const { data: membres,          loading: lm, refetch: rm  } = useAsync(fetchMembres);
   const { data: souscriptions,    loading: ls, refetch: rs  } = useAsync(fetchSouscriptionsTerrain);
@@ -623,7 +647,9 @@ export default function TerrainsPage() {
 
             <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
               <span className="text-xs text-gray-400">{filtered.length} souscription{filtered.length > 1 ? 's' : ''}</span>
-              <button className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+              <button
+                onClick={() => setShowSouscriptionModal(true)}
+                className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                 + Nouvelle souscription
               </button>
             </div>
@@ -759,6 +785,14 @@ export default function TerrainsPage() {
           membres={membres ?? []}
           initialType="terrain"
           onClose={() => setShowDossierModal(false)}
+          onCreated={refetchAll}
+        />
+      )}
+      {showSouscriptionModal && (
+        <NouveauSouscriptionTerrainModal
+          membres={membres ?? []}
+          offres={offresSimples}
+          onClose={() => setShowSouscriptionModal(false)}
           onCreated={refetchAll}
         />
       )}

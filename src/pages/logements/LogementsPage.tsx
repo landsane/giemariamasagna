@@ -8,8 +8,9 @@ import {
   fetchPaiementsLogementBySouscription,
   fetchOffres,
 } from '@/lib/queries';
-import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre } from '@/types';
+import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre, TypePaiementLogement } from '@/types';
 import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
+import VersementLogementModal from '@/components/VersementLogementModal';
 
 // ─── Carte offre active ───────────────────────────────────────────────────────
 function OffreActiveCard({ offre }: { offre: Offre }) {
@@ -95,6 +96,8 @@ function DetailLogement({
     () => fetchPaiementsLogementBySouscription(souscription.id),
     [souscription.id]
   );
+
+  const [versementType, setVersementType] = useState<TypePaiementLogement | null>(null);
 
   const isTerrainTF    = souscription.type_villa === 'terrain';
   const acomptePct     = souscription.acompte_requis > 0
@@ -206,19 +209,28 @@ function DetailLogement({
 
         <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex gap-2">
           <button
-            onClick={() => { refetch(); onPaiementAdded(); }}
+            onClick={() => setVersementType('mensualite')}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
           >
             + Mensualité
           </button>
           <button
-            onClick={() => { refetch(); onPaiementAdded(); }}
+            onClick={() => setVersementType('acompte')}
             className="flex-1 border border-green-600 text-green-700 text-sm font-semibold py-2.5 rounded-xl hover:bg-green-50 transition-colors"
           >
             + Acompte
           </button>
         </div>
       </div>
+      {versementType && (
+        <VersementLogementModal
+          souscription={souscription}
+          membre={membre}
+          initialType={versementType}
+          onClose={() => setVersementType(null)}
+          onSaved={() => { refetch(); onPaiementAdded(); }}
+        />
+      )}
     </div>
   );
 }

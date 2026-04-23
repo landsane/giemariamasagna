@@ -34,6 +34,10 @@ export default function NouveauDossierModal({ membres, initialType, onClose, onC
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
 
+  const visibleTypes = TYPES.filter(t =>
+    initialType === 'terrain' ? t.id === 'terrain' : t.id !== 'terrain'
+  );
+
   const isTerrainTF = type === 'terrain';
   const prixTotal   = isTerrainTF
     ? parseInt(prixInput.replace(/\s/g, ''), 10) || 0
@@ -82,11 +86,12 @@ export default function NouveauDossierModal({ membres, initialType, onClose, onC
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Étape 1 — Type de bien */}
+          {/* Type de bien — masqué si un seul choix possible */}
+          {visibleTypes.length > 1 && (
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Type de bien</p>
             <div className="grid grid-cols-3 gap-2">
-              {TYPES.map(t => (
+              {visibleTypes.map(t => (
                 <button
                   key={t.id}
                   onClick={() => { setType(t.id); setPrixInput(''); }}
@@ -100,6 +105,7 @@ export default function NouveauDossierModal({ membres, initialType, onClose, onC
               ))}
             </div>
           </div>
+          )}
 
           {/* Prix terrain TF (libre) */}
           {isTerrainTF && (
