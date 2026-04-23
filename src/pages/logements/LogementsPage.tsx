@@ -442,12 +442,6 @@ export default function LogementsPage() {
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <p className="text-sm text-gray-400">Aucun dossier correspondant</p>
-          <button
-            onClick={() => setShowModal(true)}
-            className="mt-3 text-sm text-green-600 hover:underline"
-          >
-            Créer le premier dossier
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
