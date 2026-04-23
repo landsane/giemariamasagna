@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Pencil, Archive, ArchiveRestore } from 'lucide-react';
+import { MoreVertical, Pencil, Archive, ArchiveRestore } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, updateMembre } from '@/lib/queries';
 import type { Membre, SouscriptionTerrain, SouscriptionLogement } from '@/types';
@@ -10,7 +10,7 @@ import Spinner from '@/components/Spinner';
 import MembreFormModal from '@/components/MembreFormModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
-type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux' | 'inactif';
+type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux';
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 function Avatar({ membre, size = 'md' }: { membre: Membre; size?: 'sm' | 'md' | 'lg' }) {
@@ -107,43 +107,53 @@ function MembreCard({
   onEdit: (m: Membre) => void;
   onToggleArchive: (m: Membre) => void;
 }) {
+  const [showMenu, setShowMenu] = useState(false);
   const terrains  = souscTerrains.filter(s => s.membre_id === membre.id);
   const logements = souscLogements.filter(s => s.membre_id === membre.id);
   const nbOffres  = terrains.length + logements.length;
 
   return (
     <div className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md ${membre.statut === 'inactif' ? 'opacity-60 border-gray-100' : 'border-gray-100'}`}>
-      {/* En-tête */}
       <div className="flex items-start gap-3">
         <Avatar membre={membre} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
-              <p className="text-xs text-gray-400">{membre.id_membre}</p>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="relative flex-shrink-0">
               <button
-                onClick={() => onEdit(membre)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                title="Modifier"
+                onClick={() => setShowMenu(v => !v)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <MoreVertical className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => onToggleArchive(membre)}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  membre.statut === 'actif'
-                    ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
-                    : 'text-amber-600 hover:text-green-600 hover:bg-green-50'
-                }`}
-                title={membre.statut === 'actif' ? 'Archiver' : 'Réactiver'}
-              >
-                {membre.statut === 'actif'
-                  ? <Archive className="w-3.5 h-3.5" />
-                  : <ArchiveRestore className="w-3.5 h-3.5" />
-                }
-              </button>
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-8 z-20 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[140px]">
+                    <button
+                      onClick={() => { onEdit(membre); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Modifier
+                    </button>
+                    <button
+                      onClick={() => { onToggleArchive(membre); setShowMenu(false); }}
+                      className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-colors ${
+                        membre.statut === 'actif'
+                          ? 'text-amber-600 hover:bg-amber-50'
+                          : 'text-green-600 hover:bg-green-50'
+                      }`}
+                    >
+                      {membre.statut === 'actif'
+                        ? <><Archive className="w-3.5 h-3.5" /> Archiver</>
+                        : <><ArchiveRestore className="w-3.5 h-3.5" /> Réactiver</>
+                      }
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div className="mt-1.5 flex flex-wrap gap-1">
@@ -153,14 +163,10 @@ function MembreCard({
             <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
               {formatDate(membre.created_at)}
             </span>
-            <Badge variant={membre.statut === 'actif' ? 'green' : 'gray'}>
-              {membre.statut === 'actif' ? 'Actif' : 'Archivé'}
-            </Badge>
           </div>
         </div>
       </div>
 
-      {/* Souscriptions */}
       {nbOffres === 0 ? (
         <p className="text-xs text-gray-300 text-center py-2 border border-dashed border-gray-100 rounded-xl">
           Aucune offre souscrite
@@ -177,10 +183,11 @@ function MembreCard({
 
 // ─── Page principale ──────────────────────────────────────────────────────────
 export default function MembresPage() {
-  const [search, setSearch]       = useState('');
-  const [filtre, setFiltre]       = useState<Filtre>('tous');
-  const [editing, setEditing]     = useState<Membre | null>(null);
-  const [showNew, setShowNew]     = useState(false);
+  const [search, setSearch]   = useState('');
+  const [tab, setTab]         = useState<'actif' | 'inactif'>('actif');
+  const [filtre, setFiltre]   = useState<Filtre>('tous');
+  const [editing, setEditing] = useState<Membre | null>(null);
+  const [showNew, setShowNew] = useState(false);
 
   const { data: membres,   loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: terrains,  loading: lt, refetch: rt } = useAsync(fetchSouscriptionsTerrain);
@@ -188,6 +195,11 @@ export default function MembresPage() {
 
   const loading    = lm || lt || ll;
   const refetchAll = () => { rm(); rt(); rl(); };
+
+  function switchTab(t: 'actif' | 'inactif') {
+    setTab(t);
+    setFiltre('tous');
+  }
 
   const sets = useMemo(() => {
     const stIds = new Set((terrains ?? []).map(s => s.membre_id));
@@ -202,30 +214,32 @@ export default function MembresPage() {
   const stats = useMemo(() => ({
     total:          (membres ?? []).length,
     actifs:         (membres ?? []).filter(m => m.statut === 'actif').length,
-    terrain_simple: (membres ?? []).filter(m => sets.stIds.has(m.id)).length,
-    terrain_tf:     (membres ?? []).filter(m => sets.tfIds.has(m.id)).length,
-    logement_f2:    (membres ?? []).filter(m => sets.f2Ids.has(m.id)).length,
-    logement_f3:    (membres ?? []).filter(m => sets.f3Ids.has(m.id)).length,
-    les_deux:       sets.deux.size,
+    inactifs:       (membres ?? []).filter(m => m.statut !== 'actif').length,
+    terrain_simple: (membres ?? []).filter(m => m.statut === 'actif' && sets.stIds.has(m.id)).length,
+    terrain_tf:     (membres ?? []).filter(m => m.statut === 'actif' && sets.tfIds.has(m.id)).length,
+    logement_f2:    (membres ?? []).filter(m => m.statut === 'actif' && sets.f2Ids.has(m.id)).length,
+    logement_f3:    (membres ?? []).filter(m => m.statut === 'actif' && sets.f3Ids.has(m.id)).length,
+    les_deux:       [...sets.deux].filter(id => (membres ?? []).find(m => m.id === id)?.statut === 'actif').length,
   }), [membres, sets]);
 
   const filtered = useMemo(() => {
     if (!membres) return [];
     return membres.filter(m => {
+      if (tab === 'actif'   && m.statut !== 'actif') return false;
+      if (tab === 'inactif' && m.statut === 'actif') return false;
       const q = search.toLowerCase();
       const ok = !q || m.nom.toLowerCase().includes(q) || m.prenom.toLowerCase().includes(q) ||
-                 m.id_membre.toLowerCase().includes(q) || (m.telephone ?? '').includes(q);
-      const f =
+                 (m.telephone ?? '').includes(q);
+      const f = tab === 'inactif' ? true :
         filtre === 'tous'           ? true :
         filtre === 'terrain_simple' ? sets.stIds.has(m.id) :
         filtre === 'terrain_tf'     ? sets.tfIds.has(m.id) :
         filtre === 'logement_f2'    ? sets.f2Ids.has(m.id) :
         filtre === 'logement_f3'    ? sets.f3Ids.has(m.id) :
-        filtre === 'les_deux'       ? sets.deux.has(m.id) :
-        m.statut === 'inactif';
+        sets.deux.has(m.id);
       return ok && f;
     });
-  }, [membres, search, filtre, sets]);
+  }, [membres, search, tab, filtre, sets]);
 
   async function handleToggleArchive(m: Membre) {
     await updateMembre(m.id, { statut: m.statut === 'actif' ? 'inactif' : 'actif' });
@@ -233,13 +247,12 @@ export default function MembresPage() {
   }
 
   const filtres: { id: Filtre; label: string; count: number; color: string }[] = [
-    { id: 'tous',           label: 'Tous',            count: stats.total,          color: 'bg-gray-700 text-white' },
+    { id: 'tous',           label: 'Tous',             count: stats.actifs,         color: 'bg-gray-700 text-white' },
     { id: 'terrain_simple', label: 'Terrains simples', count: stats.terrain_simple, color: 'bg-blue-600 text-white' },
     { id: 'terrain_tf',     label: 'Terrains TF',      count: stats.terrain_tf,     color: 'bg-green-600 text-white' },
     { id: 'logement_f2',    label: 'Logements F2',     count: stats.logement_f2,    color: 'bg-indigo-600 text-white' },
     { id: 'logement_f3',    label: 'Logements F3',     count: stats.logement_f3,    color: 'bg-purple-600 text-white' },
     { id: 'les_deux',       label: 'Multi-offres',     count: stats.les_deux,       color: 'bg-amber-500 text-white' },
-    { id: 'inactif',        label: 'Archivés',         count: stats.total - stats.actifs, color: 'bg-gray-400 text-white' },
   ];
 
   return (
@@ -256,48 +269,69 @@ export default function MembresPage() {
         </button>
       </div>
 
-      {/* Stats rapides */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-        {[
-          { label: 'Terrains simples', value: stats.terrain_simple, color: 'text-blue-600' },
-          { label: 'Terrains TF',      value: stats.terrain_tf,     color: 'text-green-600' },
-          { label: 'Logements F2',     value: stats.logement_f2,    color: 'text-indigo-600' },
-          { label: 'Logements F3',     value: stats.logement_f3,    color: 'text-purple-600' },
-          { label: 'Multi-offres',     value: stats.les_deux,       color: 'text-amber-600' },
-          { label: 'Actifs',           value: stats.actifs,         color: 'text-gray-900' },
-        ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-3 text-center">
-            <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.label}</p>
-          </div>
-        ))}
+      {/* Onglets */}
+      <div className="flex w-full bg-gray-100 rounded-xl p-1">
+        <button
+          onClick={() => switchTab('actif')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'actif' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Actifs ({stats.actifs})
+        </button>
+        <button
+          onClick={() => switchTab('inactif')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'inactif' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Archivés ({stats.inactifs})
+        </button>
       </div>
+
+      {/* Stats rapides (onglet actifs seulement) */}
+      {tab === 'actif' && (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {[
+            { label: 'Terrains simples', value: stats.terrain_simple, color: 'text-blue-600' },
+            { label: 'Terrains TF',      value: stats.terrain_tf,     color: 'text-green-600' },
+            { label: 'Logements F2',     value: stats.logement_f2,    color: 'text-indigo-600' },
+            { label: 'Logements F3',     value: stats.logement_f3,    color: 'text-purple-600' },
+            { label: 'Multi-offres',     value: stats.les_deux,       color: 'text-amber-600' },
+            { label: 'Actifs',           value: stats.actifs,         color: 'text-gray-900' },
+          ].map(s => (
+            <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-3 text-center">
+              <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Recherche + filtres */}
       <div className="space-y-2">
-        <input type="text" placeholder="Rechercher par nom, prénom, ID ou téléphone…"
+        <input type="text" placeholder="Rechercher par nom, prénom ou téléphone…"
           value={search} onChange={e => setSearch(e.target.value)}
           className="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300 bg-white"
         />
-        <div className="flex gap-1.5 flex-wrap">
-          {filtres.map(f => (
-            <button key={f.id} onClick={() => setFiltre(f.id)}
-              className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
-                filtre === f.id ? `${f.color} border-transparent` : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
-              }`}>
-              {f.label} <span className={filtre === f.id ? 'opacity-80' : 'opacity-50'}>({f.count})</span>
-            </button>
-          ))}
-        </div>
+        {tab === 'actif' && (
+          <div className="flex gap-1.5 flex-wrap">
+            {filtres.map(f => (
+              <button key={f.id} onClick={() => setFiltre(f.id)}
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${
+                  filtre === f.id ? `${f.color} border-transparent` : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                }`}>
+                {f.label} <span className={filtre === f.id ? 'opacity-80' : 'opacity-50'}>({f.count})</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Grille */}
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <p className="text-sm text-gray-400">Aucun membre correspondant</p>
-          <button onClick={() => setShowNew(true)} className="mt-3 text-sm text-green-600 hover:underline">
-            Ajouter le premier membre
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

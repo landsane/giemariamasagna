@@ -35,7 +35,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
   }
 
   const idAffiche = editing ? initial!.id_membre : (nextId || '…');
-  const initiales = prenom && nom ? `${prenom[0]}${nom[0]}`.toUpperCase() : idAffiche.slice(0, 2);
+  const initiales = prenom && nom ? `${prenom[0]}${nom[0]}`.toUpperCase() : '??';
 
   async function handleSubmit() {
     if (!nom.trim() || !prenom.trim()) return setError('Le nom et le prénom sont obligatoires.');
@@ -81,7 +81,6 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4" onClick={onClose}>
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="font-black text-gray-900">{editing ? 'Modifier le membre' : 'Nouveau membre'}</h3>
@@ -91,9 +90,8 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Photo + ID */}
-          <div className="flex items-center gap-4">
-            {/* Zone photo cliquable */}
+          {/* Photo */}
+          <div className="flex flex-col items-center gap-2">
             <div
               className="relative w-20 h-20 rounded-full cursor-pointer group flex-shrink-0"
               onClick={() => fileRef.current?.click()}
@@ -110,22 +108,7 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
               </div>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
             </div>
-
-            <div className="flex-1">
-              {!editing && (
-                <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-2.5 flex items-center justify-between mb-3">
-                  <p className="text-xs text-green-700">Identifiant</p>
-                  <p className="text-base font-black text-green-700">{idAffiche}</p>
-                </div>
-              )}
-              {editing && (
-                <div className="bg-gray-50 rounded-xl px-4 py-2.5 flex items-center justify-between mb-3">
-                  <p className="text-xs text-gray-400">Identifiant</p>
-                  <p className="text-base font-black text-gray-600">{initial!.id_membre}</p>
-                </div>
-              )}
-              <p className="text-xs text-gray-400 text-center">Cliquer sur la photo pour changer</p>
-            </div>
+            <p className="text-xs text-gray-400">Cliquer sur la photo pour changer</p>
           </div>
 
           {/* Prénom */}
