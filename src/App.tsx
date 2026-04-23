@@ -4,6 +4,7 @@ import DashboardPage from '@/pages/DashboardPage';
 import TerrainsPage from '@/pages/terrains/TerrainsPage';
 import LogementsPage from '@/pages/logements/LogementsPage';
 import MembresPage from '@/pages/MembresPage';
+import OffresPage from '@/pages/OffresPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/membres" element={<MembresPage />} />
           <Route path="/terrains/*" element={<TerrainsPage />} />
           <Route path="/logements/*" element={<LogementsPage />} />
+          <Route path="/offres" element={<OffresPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

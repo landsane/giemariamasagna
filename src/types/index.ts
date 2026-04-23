@@ -72,6 +72,30 @@ export interface PaiementLogement {
   reference?: string;
 }
 
+// ─── Offres ───────────────────────────────────────────────────────────────────
+export type TypeOffre = 'terrain_simple' | 'terrain_tf' | 'logement';
+
+export interface Offre {
+  id: string;
+  type: TypeOffre;
+  sous_type?: 'F2' | 'F3' | null;
+  nom: string;
+  description?: string;
+  localisation: string;
+  prix_unitaire: number;
+  frais_dossier: number;
+  taux_acompte: number;   // 0.08 = 8%
+  nb_mensualites: number;
+  statut: 'active' | 'inactive' | 'complet';
+  created_at: string;
+}
+
+export const LABELS_TYPE_OFFRE: Record<TypeOffre, string> = {
+  terrain_simple: 'Terrain Simple',
+  terrain_tf:     'Terrain TF',
+  logement:       'Logement Social',
+};
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 export const PRIX_TERRAIN = 460_000;
 export const PRIX_F2 = 16_000_000;

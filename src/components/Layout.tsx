@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Map, Building2, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Map, Building2, Tag, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,7 @@ const NAV = [
   { to: '/membres',    icon: Users,           label: 'Membres'          },
   { to: '/terrains',   icon: Map,             label: 'Terrains Simples' },
   { to: '/logements',  icon: Building2,       label: 'Logements / TF'   },
+  { to: '/offres',     icon: Tag,             label: 'Offres'            },
 ];
 
 export default function Layout() {

@@ -1,11 +1,54 @@
 import { supabase } from '@/integrations/supabase/client';
 import type {
   Membre,
+  Offre,
   SouscriptionTerrain,
   PaiementTerrain,
   SouscriptionLogement,
   PaiementLogement,
 } from '@/types';
+
+// ─── Offres ──────────────────────────────────────────────────────────────────
+export async function fetchOffres(): Promise<Offre[]> {
+  const { data, error } = await supabase
+    .from('offres')
+    .select('*')
+    .order('type')
+    .order('nom');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function insertOffre(
+  data: Omit<Offre, 'id' | 'created_at'>
+) {
+  const { data: row, error } = await supabase
+    .from('offres')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw error;
+  return row as Offre;
+}
+
+export async function updateOffreStatut(id: string, statut: Offre['statut']) {
+  const { error } = await supabase
+    .from('offres')
+    .update({ statut })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function updateOffre(id: string, data: Partial<Omit<Offre, 'id' | 'created_at'>>) {
+  const { data: row, error } = await supabase
+    .from('offres')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return row as Offre;
+}
 
 // ─── Membres ─────────────────────────────────────────────────────────────────
 export async function fetchMembres(): Promise<Membre[]> {
@@ -72,6 +115,7 @@ export async function fetchSouscriptionsTerrainByMembre(membreId: string): Promi
 
 export async function insertSouscriptionTerrain(
   data: Pick<SouscriptionTerrain, 'membre_id' | 'nb_terrains' | 'montant_total' | 'sgbs' | 'date_souscription'>
+    & { offre_id?: string }
 ) {
   const { data: row, error } = await supabase
     .from('souscriptions_terrains')
@@ -154,7 +198,7 @@ export async function insertSouscriptionLogement(
     SouscriptionLogement,
     'membre_id' | 'type_villa' | 'site' | 'titre' |
     'prix_total' | 'acompte_requis' | 'mensualite' | 'date_souscription'
-  >
+  > & { offre_id?: string }
 ) {
   const { data: row, error } = await supabase
     .from('souscriptions_logements')
