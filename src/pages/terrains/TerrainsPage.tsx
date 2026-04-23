@@ -641,70 +641,11 @@ export default function TerrainsPage() {
               </>
             )}
 
-            <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
+            <div className="px-4 py-3 border-t border-gray-50">
               <span className="text-xs text-gray-400">{filtered.length} souscription{filtered.length > 1 ? 's' : ''}</span>
-              <button
-                onClick={() => setShowNouveauDossier(true)}
-                className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                + Nouveau dossier
-              </button>
             </div>
           </div>
 
-          {/* Encaisseurs */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="p-4 border-b border-gray-50">
-              <p className="text-sm font-semibold text-gray-900">Encaisseurs</p>
-              <p className="text-xs text-gray-400 mt-0.5">Classement par montant collecté</p>
-            </div>
-            {loading ? (
-              <Spinner />
-            ) : (
-              <div className="p-4 space-y-3">
-                {encaisseurs.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-4">Aucun versement enregistré</p>
-                ) : (
-                  encaisseurs.map(e => {
-                    const pct = stats.verse_simple > 0 ? Math.round((e.total / stats.verse_simple) * 100) : 0;
-                    return (
-                      <div key={e.nom}>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="font-medium text-gray-800">{e.nom}</span>
-                          <span className="text-gray-400">{e.count} vers.</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <ProgressBar value={pct} className="flex-1" />
-                          <span className="text-xs text-gray-500 w-10 text-right">{pct}%</span>
-                        </div>
-                        <p className="text-xs text-green-700 font-semibold mt-0.5">{formatCurrency(e.total)}</p>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-            {!loading && paiements && paiements.length > 0 && (
-              <div className="p-4 border-t border-gray-50">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Modes de paiement</p>
-                {(() => {
-                  const modes: Record<string, number> = {};
-                  paiements.forEach(p => { modes[p.mode_paiement] = (modes[p.mode_paiement] ?? 0) + p.montant; });
-                  const total = Object.values(modes).reduce((a, b) => a + b, 0);
-                  const colors: Record<string, string> = {
-                    wave: 'bg-blue-500', orange_money: 'bg-orange-400',
-                    banque: 'bg-green-500', autres: 'bg-gray-400',
-                  };
-                  return Object.entries(modes).sort(([, a], [, b]) => b - a).map(([mode, montant]) => (
-                    <div key={mode} className="flex items-center gap-2 mb-2">
-                      <div className={`w-2 h-2 rounded-full ${colors[mode] ?? 'bg-gray-400'}`} />
-                      <span className="text-xs text-gray-600 flex-1">{LABELS_MODE[mode as keyof typeof LABELS_MODE] ?? mode}</span>
-                      <span className="text-xs text-gray-400">{Math.round((montant / total) * 100)}%</span>
-                    </div>
-                  ));
-                })()}
-              </div>
-            )}
-          </div>
         </div>
       </div>
       )}
@@ -718,9 +659,6 @@ export default function TerrainsPage() {
         {ltf ? <Spinner /> : filteredTF.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
             <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
-            <button onClick={() => setShowNouveauDossier(true)} className="mt-3 text-sm text-green-600 hover:underline">
-              Créer le premier dossier TF
-            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
