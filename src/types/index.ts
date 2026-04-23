@@ -40,8 +40,8 @@ export interface PaiementTerrain {
   reference?: string;
 }
 
-// ─── Module 2 – Logements / Titre Foncier ────────────────────────────────────
-export type TypeVilla = 'F2' | 'F3';
+// ─── Module 2 – Logements / Titre Foncier / Terrains TF ──────────────────────
+export type TypeBien = 'F2' | 'F3' | 'terrain';
 export type SiteLogement = 'ndoyenne' | 'keur_moussa';
 export type TitreLogement = 'TF' | 'bail';
 export type TypePaiementLogement = 'acompte' | 'mensualite';
@@ -49,7 +49,7 @@ export type TypePaiementLogement = 'acompte' | 'mensualite';
 export interface SouscriptionLogement {
   id: string;
   membre_id: string;
-  type_villa: TypeVilla;
+  type_villa: TypeBien;
   site: SiteLogement;
   titre: TitreLogement;
   prix_total: number; // F2 = 16 000 000, F3 = 20 000 000
@@ -78,6 +78,12 @@ export const PRIX_F2 = 16_000_000;
 export const PRIX_F3 = 20_000_000;
 export const TAUX_ACOMPTE = 0.08;
 export const NB_MENSUALITES = 120;
+
+export const LABELS_TYPE_BIEN: Record<TypeBien, string> = {
+  F2:      'Villa F2',
+  F3:      'Villa F3',
+  terrain: 'Terrain TF',
+};
 
 export const LABELS_VERSEMENT: Record<number, string> = {
   1: 'Juillet 2024',

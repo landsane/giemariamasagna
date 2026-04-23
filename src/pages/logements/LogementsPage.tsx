@@ -6,11 +6,12 @@ import {
   fetchPaiementsLogement,
   fetchPaiementsLogementBySouscription,
 } from '@/lib/queries';
-import type { Membre, SouscriptionLogement, PaiementLogement } from '@/types';
-import { LABELS_MODE, LABELS_SITE } from '@/types';
+import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien } from '@/types';
+import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
+import NouveauDossierModal from '@/components/NouveauDossierModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
@@ -18,6 +19,12 @@ function statutVariant(statut: SouscriptionLogement['statut']) {
 }
 function statutLabel(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'Livré' : statut === 'attribue' ? 'Attribué' : statut === 'valide' ? 'Validé' : 'En cours';
+}
+
+function typeBadge(type: TypeBien) {
+  if (type === 'F3')      return <Badge variant="purple">Villa F3</Badge>;
+  if (type === 'terrain') return <Badge variant="green">Terrain TF</Badge>;
+  return                         <Badge variant="blue">Villa F2</Badge>;
 }
 
 // ─── Panneau de détail ────────────────────────────────────────────────────────
@@ -38,10 +45,13 @@ function DetailLogement({
     [souscription.id]
   );
 
-  const acomptePct   = Math.round((souscription.acompte_verse / souscription.acompte_requis) * 100);
+  const isTerrainTF    = souscription.type_villa === 'terrain';
+  const acomptePct     = souscription.acompte_requis > 0
+    ? Math.round((souscription.acompte_verse / souscription.acompte_requis) * 100)
+    : 0;
   const mensualitesPct = Math.round((souscription.nb_mensualites_payees / 120) * 100);
-  const totalVerse   = souscription.acompte_verse + souscription.nb_mensualites_payees * souscription.mensualite;
-  const totalPct     = Math.round((totalVerse / souscription.prix_total) * 100);
+  const totalVerse     = souscription.acompte_verse + souscription.nb_mensualites_payees * souscription.mensualite;
+  const totalPct       = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-start justify-end z-50" onClick={onClose}>
@@ -49,7 +59,9 @@ function DetailLogement({
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
-            <p className="text-xs text-gray-400">{membre?.id_membre} · Villa {souscription.type_villa} · {souscription.titre}</p>
+            <p className="text-xs text-gray-400">
+              {membre?.id_membre} · {LABELS_TYPE_BIEN[souscription.type_villa]} · {souscription.titre}
+            </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
         </div>
@@ -57,13 +69,19 @@ function DetailLogement({
         {/* Infos */}
         <div className="p-6 border-b border-gray-50 space-y-4">
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div><p className="text-gray-400">Type</p><p className="font-semibold text-gray-900">Villa {souscription.type_villa}</p></div>
+            <div><p className="text-gray-400">Type</p><p className="font-semibold text-gray-900">{LABELS_TYPE_BIEN[souscription.type_villa]}</p></div>
             <div><p className="text-gray-400">Titre</p><p className="font-semibold text-gray-900">{souscription.titre}</p></div>
             <div className="col-span-2"><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{LABELS_SITE[souscription.site]}</p></div>
             <div><p className="text-gray-400">Prix total</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.prix_total)}</p></div>
-            <div><p className="text-gray-400">Mensualité</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.mensualite)}/mois</p></div>
+            <div>
+              <p className="text-gray-400">{isTerrainTF ? 'Mensualité' : 'Mensualité'}</p>
+              <p className="font-semibold text-gray-900">{formatCurrency(souscription.mensualite)}/mois</p>
+            </div>
           </div>
-          <Badge variant={statutVariant(souscription.statut)}>{statutLabel(souscription.statut)}</Badge>
+          <div className="flex gap-1.5 flex-wrap">
+            {typeBadge(souscription.type_villa)}
+            <Badge variant={statutVariant(souscription.statut)}>{statutLabel(souscription.statut)}</Badge>
+          </div>
         </div>
 
         {/* Acompte */}
@@ -157,9 +175,9 @@ function DetailLogement({
 // ─── Carte dossier ────────────────────────────────────────────────────────────
 function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membres: Membre[]; onSelect: (s: SouscriptionLogement) => void }) {
   const membre     = membres.find(m => m.id === s.membre_id);
-  const acomptePct = Math.round((s.acompte_verse / s.acompte_requis) * 100);
+  const acomptePct = s.acompte_requis > 0 ? Math.round((s.acompte_verse / s.acompte_requis) * 100) : 0;
   const totalVerse = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
-  const totalPct   = Math.round((totalVerse / s.prix_total) * 100);
+  const totalPct   = s.prix_total > 0 ? Math.round((totalVerse / s.prix_total) * 100) : 0;
 
   return (
     <div
@@ -174,7 +192,7 @@ function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membre
         <Badge variant={statutVariant(s.statut)}>{statutLabel(s.statut)}</Badge>
       </div>
       <div className="flex gap-1.5 mb-3 flex-wrap">
-        <Badge variant={s.type_villa === 'F3' ? 'purple' : 'blue'}>Villa {s.type_villa}</Badge>
+        {typeBadge(s.type_villa)}
         <Badge variant="gray">{s.titre}</Badge>
         <Badge variant="gray">{s.site === 'ndoyenne' ? 'Sébikhotane' : 'Diender'}</Badge>
       </div>
@@ -200,11 +218,15 @@ function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membre
 }
 
 // ─── Page principale ──────────────────────────────────────────────────────────
+type FiltreType = 'tous' | 'F2' | 'F3' | 'terrain';
+type FiltreStatut = 'tous' | 'en_cours' | 'valide' | 'attribue';
+
 export default function LogementsPage() {
-  const [search, setSearch]           = useState('');
-  const [filtreStatut, setFiltreStatut] = useState<'tous' | 'en_cours' | 'valide' | 'attribue'>('tous');
-  const [filtreType, setFiltreType]   = useState<'tous' | 'F2' | 'F3'>('tous');
-  const [selected, setSelected]       = useState<SouscriptionLogement | null>(null);
+  const [search, setSearch]             = useState('');
+  const [filtreStatut, setFiltreStatut] = useState<FiltreStatut>('tous');
+  const [filtreType, setFiltreType]     = useState<FiltreType>('tous');
+  const [selected, setSelected]         = useState<SouscriptionLogement | null>(null);
+  const [showModal, setShowModal]       = useState(false);
 
   const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsLogement);
@@ -234,6 +256,7 @@ export default function LogementsPage() {
     return {
       nb_f2:               list.filter(s => s.type_villa === 'F2').length,
       nb_f3:               list.filter(s => s.type_villa === 'F3').length,
+      nb_terrain:          list.filter(s => s.type_villa === 'terrain').length,
       total_acompte_verse: list.reduce((a, s) => a + s.acompte_verse, 0),
       nb_valides:          list.filter(s => s.statut !== 'en_cours').length,
     };
@@ -242,12 +265,19 @@ export default function LogementsPage() {
   const totalPaiements = useMemo(() =>
     (paiements ?? []).reduce((a, p) => a + p.montant, 0), [paiements]);
 
+  const filtresType: { id: FiltreType; label: string; count: number }[] = [
+    { id: 'tous',    label: 'Tous',         count: (souscriptions ?? []).length },
+    { id: 'F2',      label: 'Villa F2',     count: stats.nb_f2 },
+    { id: 'F3',      label: 'Villa F3',     count: stats.nb_f3 },
+    { id: 'terrain', label: 'Terrain TF',   count: stats.nb_terrain },
+  ];
+
   return (
     <div className="space-y-5 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-gray-900">Logements &amp; Titre Foncier</h2>
-          <p className="text-sm text-gray-400 mt-1">Programme PICLOM 2026–2029 · Le Millénium 7SD · Villa F2 &amp; F3</p>
+          <h2 className="text-xl font-black text-gray-900">Logements &amp; Terrains TF</h2>
+          <p className="text-sm text-gray-400 mt-1">Programme PICLOM 2026–2029 · Le Millénium 7SD</p>
         </div>
         <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
           Actualiser
@@ -257,10 +287,10 @@ export default function LogementsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Dossiers Villa F2',  value: stats.nb_f2,   color: 'text-blue-600' },
-          { label: 'Dossiers Villa F3',  value: stats.nb_f3,   color: 'text-purple-600' },
-          { label: 'Acomptes versés',    value: formatCurrency(stats.total_acompte_verse), color: 'text-green-600', small: true },
-          { label: 'Dossiers validés',   value: stats.nb_valides, color: 'text-gray-900' },
+          { label: 'Villa F2',         value: stats.nb_f2,                            color: 'text-blue-600' },
+          { label: 'Villa F3',         value: stats.nb_f3,                            color: 'text-purple-600' },
+          { label: 'Terrains TF',      value: stats.nb_terrain,                       color: 'text-green-600' },
+          { label: 'Total encaissé',   value: formatCurrency(totalPaiements),          color: 'text-gray-900', small: true },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className={`font-black ${s.color} ${s.small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
@@ -269,20 +299,22 @@ export default function LogementsPage() {
         ))}
       </div>
 
-      {/* Info offre */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Offre promoteur */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { type: 'F2', prix: '16 000 000', mensualite: '133 333', acompte: '1 280 000', color: 'border-blue-200 bg-blue-50/50' },
-          { type: 'F3', prix: '20 000 000', mensualite: '166 667', acompte: '1 600 000', color: 'border-purple-200 bg-purple-50/50' },
+          { type: 'F2',      label: 'Villa F2',   prix: '16 000 000', mensualite: '133 333', acompte: '1 280 000', color: 'border-blue-200 bg-blue-50/50' },
+          { type: 'F3',      label: 'Villa F3',   prix: '20 000 000', mensualite: '166 667', acompte: '1 600 000', color: 'border-purple-200 bg-purple-50/50' },
+          { type: 'terrain', label: 'Terrain TF', prix: 'Variable',   mensualite: 'Variable', acompte: '8% du prix', color: 'border-green-200 bg-green-50/50' },
         ].map(v => (
           <div key={v.type} className={`rounded-xl border p-4 ${v.color}`}>
-            <p className="text-sm font-black text-gray-900 mb-2">Villa {v.type}</p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div><p className="text-gray-400">Prix</p><p className="font-semibold">{v.prix} F</p></div>
-              <div><p className="text-gray-400">Acompte 8%</p><p className="font-semibold">{v.acompte} F</p></div>
-              <div><p className="text-gray-400">Mensualité</p><p className="font-semibold">{v.mensualite} F</p></div>
+            <p className="text-sm font-black text-gray-900 mb-2">{v.label}</p>
+            <div className="grid grid-cols-3 gap-1.5 text-xs">
+              <div><p className="text-gray-400">Prix</p><p className="font-semibold">{v.prix}{v.type !== 'terrain' ? ' F' : ''}</p></div>
+              <div><p className="text-gray-400">Acompte</p><p className="font-semibold">{v.acompte}{v.type !== 'terrain' ? ' F' : ''}</p></div>
+              <div><p className="text-gray-400">Mensualité</p><p className="font-semibold">{v.mensualite}{v.type !== 'terrain' ? ' F' : ''}</p></div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Durée : 120 mois (10 ans)</p>
+            {v.type !== 'terrain' && <p className="text-xs text-gray-400 mt-2">Durée : 120 mois</p>}
+            {v.type === 'terrain' && <p className="text-xs text-gray-400 mt-2">Sites : Sébikhotane · Diender</p>}
           </div>
         ))}
       </div>
@@ -297,30 +329,49 @@ export default function LogementsPage() {
           className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-green-400 placeholder:text-gray-300 bg-white"
         />
         <div className="flex gap-1 flex-wrap">
-          {(['tous', 'en_cours', 'valide', 'attribue'] as const).map(f => (
-            <button key={f} onClick={() => setFiltreStatut(f)}
-              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${filtreStatut === f ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'}`}
+          {filtresType.map(f => (
+            <button key={f.id} onClick={() => setFiltreType(f.id)}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                filtreType === f.id
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'
+              }`}
             >
-              {f === 'tous' ? 'Tous' : f === 'en_cours' ? 'En cours' : f === 'valide' ? 'Validés' : 'Attribués'}
-            </button>
-          ))}
-          {(['tous', 'F2', 'F3'] as const).map(f => (
-            <button key={f} onClick={() => setFiltreType(f)}
-              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${filtreType === f ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300'}`}
-            >
-              {f === 'tous' ? 'F2 & F3' : `Villa ${f}`}
+              {f.label} <span className="opacity-70">({f.count})</span>
             </button>
           ))}
         </div>
-        <button className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+        <div className="flex gap-1 flex-wrap">
+          {(['tous', 'en_cours', 'valide', 'attribue'] as FiltreStatut[]).map(f => (
+            <button key={f} onClick={() => setFiltreStatut(f)}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                filtreStatut === f
+                  ? 'bg-gray-700 text-white border-gray-700'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              {f === 'tous' ? 'Tous statuts' : f === 'en_cours' ? 'En cours' : f === 'valide' ? 'Validés' : 'Attribués'}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+        >
           + Nouveau dossier
         </button>
       </div>
 
-      {/* Contenu */}
+      {/* Grille de dossiers */}
       {loading ? <Spinner /> : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
           <p className="text-sm text-gray-400">Aucun dossier correspondant</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-3 text-sm text-green-600 hover:underline"
+          >
+            Créer le premier dossier
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -331,7 +382,8 @@ export default function LogementsPage() {
       )}
 
       <div className="text-xs text-gray-400 text-right">
-        Total encaissé (logements) : <span className="font-semibold text-green-700">{formatCurrency(totalPaiements)}</span>
+        {filtered.length} dossier{filtered.length > 1 ? 's' : ''} · Total encaissé :{' '}
+        <span className="font-semibold text-green-700">{formatCurrency(totalPaiements)}</span>
       </div>
 
       {selected && (
@@ -340,6 +392,14 @@ export default function LogementsPage() {
           membres={membres ?? []}
           onClose={() => setSelected(null)}
           onPaiementAdded={refetchAll}
+        />
+      )}
+
+      {showModal && (
+        <NouveauDossierModal
+          membres={membres ?? []}
+          onClose={() => setShowModal(false)}
+          onCreated={refetchAll}
         />
       )}
     </div>
