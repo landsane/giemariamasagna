@@ -780,6 +780,7 @@ export default function TerrainsPage() {
         <NouveauDossierTerrainsModal
           membres={membres ?? []}
           offresSimples={offresSimples}
+          offresTF={offresTF}
           onClose={() => setShowNouveauDossier(false)}
           onCreated={refetchAll}
         />
