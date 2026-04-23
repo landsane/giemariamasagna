@@ -331,6 +331,7 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
 export default function OffresPage() {
   const [showForm, setShowForm]     = useState(false);
   const [editing, setEditing]       = useState<Offre | null>(null);
+  const [tab, setTab]               = useState<'active' | 'inactive'>('active');
   const [filtreType, setFiltreType] = useState<TypeOffre | 'tous'>('tous');
 
   const { data: offres, loading, error, refetch } = useAsync(fetchOffres);
@@ -341,13 +342,22 @@ export default function OffresPage() {
     refetch();
   }
 
+  function switchTab(t: 'active' | 'inactive') {
+    setTab(t);
+    setFiltreType('tous');
+  }
+
+  const toutesActives   = (offres ?? []).filter(o => o.statut === 'active');
+  const toutesInactives = (offres ?? []).filter(o => o.statut !== 'active');
+  const base            = tab === 'active' ? toutesActives : toutesInactives;
+
   const parType: Record<TypeOffre, Offre[]> = {
-    terrain_simple: (offres ?? []).filter(o => o.type === 'terrain_simple'),
-    logement:       (offres ?? []).filter(o => o.type === 'logement'),
-    terrain_tf:     (offres ?? []).filter(o => o.type === 'terrain_tf'),
+    terrain_simple: base.filter(o => o.type === 'terrain_simple'),
+    logement:       base.filter(o => o.type === 'logement'),
+    terrain_tf:     base.filter(o => o.type === 'terrain_tf'),
   };
 
-  const affichees = filtreType === 'tous' ? (offres ?? []) : parType[filtreType];
+  const affichees = filtreType === 'tous' ? base : parType[filtreType];
 
   const SECTIONS: { type: TypeOffre; label: string; color: string; desc: string }[] = [
     { type: 'terrain_simple', label: 'Terrains Simples',  color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
@@ -362,7 +372,7 @@ export default function OffresPage() {
         <div>
           <h2 className="text-xl font-black text-gray-900">Offres</h2>
           <p className="text-sm text-gray-400 mt-1">
-            Catalogue des offres disponibles · {(offres ?? []).filter(o => o.statut === 'active').length} active{(offres ?? []).filter(o => o.statut === 'active').length > 1 ? 's' : ''}
+            Catalogue des offres disponibles · {toutesActives.length} active{toutesActives.length > 1 ? 's' : ''}
           </p>
         </div>
         <button
@@ -370,6 +380,26 @@ export default function OffresPage() {
           className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm"
         >
           + Nouvelle offre
+        </button>
+      </div>
+
+      {/* Onglets */}
+      <div className="flex w-full bg-gray-100 rounded-xl p-1">
+        <button
+          onClick={() => switchTab('active')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'active' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Actives ({toutesActives.length})
+        </button>
+        <button
+          onClick={() => switchTab('inactive')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'inactive' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Inactives ({toutesInactives.length})
         </button>
       </div>
 
@@ -395,11 +425,16 @@ export default function OffresPage() {
         </div>
       ) : affichees.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-          <p className="text-sm text-gray-400">Aucune offre{filtreType !== 'tous' ? ` de type ${LABELS_TYPE_OFFRE[filtreType]}` : ''}</p>
-          <button onClick={() => { setEditing(null); setShowForm(true); }}
-            className="mt-3 text-sm text-green-600 hover:underline">
-            Créer la première offre
-          </button>
+          <p className="text-sm text-gray-400">
+            {tab === 'active' ? 'Aucune offre active' : 'Aucune offre inactive'}
+            {filtreType !== 'tous' ? ` · ${LABELS_TYPE_OFFRE[filtreType]}` : ''}
+          </p>
+          {tab === 'active' && (
+            <button onClick={() => { setEditing(null); setShowForm(true); }}
+              className="mt-3 text-sm text-green-600 hover:underline">
+              Créer la première offre
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-5">
