@@ -15,8 +15,7 @@ import { LABELS_VERSEMENT, LABELS_MODE, LABELS_SITE } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
-import NouveauDossierModal from '@/components/NouveauDossierModal';
-import NouveauSouscriptionTerrainModal from '@/components/NouveauSouscriptionTerrainModal';
+import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -397,13 +396,12 @@ function SouscriptionRow({
 type FiltreCategorie = 'tous' | 'simple' | 'tf';
 
 export default function TerrainsPage() {
-  const [search, setSearch]                           = useState('');
-  const [filtreCategorie, setFiltreCategorie]         = useState<FiltreCategorie>('tous');
-  const [filtreStatut, setFiltreStatut]               = useState<'tous' | 'en_cours' | 'solde'>('tous');
-  const [selected, setSelected]                       = useState<SouscriptionTerrain | null>(null);
-  const [selectedTF, setSelectedTF]                   = useState<SouscriptionLogement | null>(null);
-  const [showDossierModal, setShowDossierModal]       = useState(false);
-  const [showSouscriptionModal, setShowSouscriptionModal] = useState(false);
+  const [search, setSearch]               = useState('');
+  const [filtreCategorie, setFiltreCategorie] = useState<FiltreCategorie>('tous');
+  const [filtreStatut, setFiltreStatut]   = useState<'tous' | 'en_cours' | 'solde'>('tous');
+  const [selected, setSelected]           = useState<SouscriptionTerrain | null>(null);
+  const [selectedTF, setSelectedTF]       = useState<SouscriptionLogement | null>(null);
+  const [showNouveauDossier, setShowNouveauDossier] = useState(false);
 
   const { data: membres,          loading: lm, refetch: rm  } = useAsync(fetchMembres);
   const { data: souscriptions,    loading: ls, refetch: rs  } = useAsync(fetchSouscriptionsTerrain);
@@ -559,12 +557,10 @@ export default function TerrainsPage() {
             </button>
           ))}
         </div>
-        {filtreCategorie !== 'simple' && (
-          <button onClick={() => setShowDossierModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
-            + Nouveau dossier TF
-          </button>
-        )}
+        <button onClick={() => setShowNouveauDossier(true)}
+          className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+          + Nouveau dossier
+        </button>
       </div>
 
       {/* ── Section Terrains Simples ── */}
@@ -648,9 +644,9 @@ export default function TerrainsPage() {
             <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">
               <span className="text-xs text-gray-400">{filtered.length} souscription{filtered.length > 1 ? 's' : ''}</span>
               <button
-                onClick={() => setShowSouscriptionModal(true)}
+                onClick={() => setShowNouveauDossier(true)}
                 className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                + Nouvelle souscription
+                + Nouveau dossier
               </button>
             </div>
           </div>
@@ -722,7 +718,7 @@ export default function TerrainsPage() {
         {ltf ? <Spinner /> : filteredTF.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
             <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
-            <button onClick={() => setShowDossierModal(true)} className="mt-3 text-sm text-green-600 hover:underline">
+            <button onClick={() => setShowNouveauDossier(true)} className="mt-3 text-sm text-green-600 hover:underline">
               Créer le premier dossier TF
             </button>
           </div>
@@ -780,19 +776,11 @@ export default function TerrainsPage() {
           onPaiementAdded={refetchAll}
         />
       )}
-      {showDossierModal && (
-        <NouveauDossierModal
+      {showNouveauDossier && (
+        <NouveauDossierTerrainsModal
           membres={membres ?? []}
-          initialType="terrain"
-          onClose={() => setShowDossierModal(false)}
-          onCreated={refetchAll}
-        />
-      )}
-      {showSouscriptionModal && (
-        <NouveauSouscriptionTerrainModal
-          membres={membres ?? []}
-          offres={offresSimples}
-          onClose={() => setShowSouscriptionModal(false)}
+          offresSimples={offresSimples}
+          onClose={() => setShowNouveauDossier(false)}
           onCreated={refetchAll}
         />
       )}
