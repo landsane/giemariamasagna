@@ -371,15 +371,18 @@ function SouscriptionRow({
 }
 
 // ─── Page principale ──────────────────────────────────────────────────────────
+type FiltreCategorie = 'tous' | 'simple' | 'tf';
+
 export default function TerrainsPage() {
-  const [search, setSearch]             = useState('');
-  const [filtreStatut, setFiltreStatut] = useState<'tous' | 'en_cours' | 'solde'>('tous');
-  const [selected, setSelected]         = useState<SouscriptionTerrain | null>(null);
-  const [selectedTF, setSelectedTF]     = useState<SouscriptionLogement | null>(null);
+  const [search, setSearch]                     = useState('');
+  const [filtreCategorie, setFiltreCategorie]   = useState<FiltreCategorie>('tous');
+  const [filtreStatut, setFiltreStatut]         = useState<'tous' | 'en_cours' | 'solde'>('tous');
+  const [selected, setSelected]                 = useState<SouscriptionTerrain | null>(null);
+  const [selectedTF, setSelectedTF]             = useState<SouscriptionLogement | null>(null);
   const [showDossierModal, setShowDossierModal] = useState(false);
 
-  const { data: membres,          loading: lm, refetch: rm } = useAsync(fetchMembres);
-  const { data: souscriptions,    loading: ls, refetch: rs } = useAsync(fetchSouscriptionsTerrain);
+  const { data: membres,          loading: lm, refetch: rm  } = useAsync(fetchMembres);
+  const { data: souscriptions,    loading: ls, refetch: rs  } = useAsync(fetchSouscriptionsTerrain);
   const { data: paiements,        loading: lp               } = useAsync(fetchPaiementsTerrain);
   const { data: toutesOffres                                 } = useAsync(fetchOffres);
   const { data: souscriptionsLog, loading: ltf, refetch: rtf } = useAsync(fetchSouscriptionsLogement);
@@ -415,23 +418,33 @@ export default function TerrainsPage() {
     });
   }, [souscriptions, membres, search, filtreStatut]);
 
+  const filteredTF = useMemo(() => {
+    if (!membres) return souscriptionsTF;
+    const q = search.toLowerCase();
+    if (!q) return souscriptionsTF;
+    return souscriptionsTF.filter(s => {
+      const m = membres.find(mb => mb.id === s.membre_id);
+      return (m?.nom ?? '').toLowerCase().includes(q) ||
+             (m?.prenom ?? '').toLowerCase().includes(q) ||
+             (m?.id_membre ?? '').toLowerCase().includes(q);
+    });
+  }, [souscriptionsTF, membres, search]);
+
   const stats = useMemo(() => {
     const list = souscriptions ?? [];
     return {
-      total_terrains: list.reduce((a, s) => a + s.nb_terrains, 0),
-      total_verse:    list.reduce((a, s) => a + s.montant_verse, 0),
-      total_reste:    list.reduce((a, s) => a + s.reste_a_verser, 0),
-      nb_soldes:      list.filter(s => s.statut === 'solde').length,
+      nb_simples:  list.length,
+      verse_simple: list.reduce((a, s) => a + s.montant_verse, 0),
+      nb_soldes:    list.filter(s => s.statut === 'solde').length,
     };
   }, [souscriptions]);
 
-  const statsTF = useMemo(() => {
-    const list = souscriptionsTF;
-    return {
-      nb:    list.length,
-      verse: list.reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0),
-    };
-  }, [souscriptionsTF]);
+  const statsTF = useMemo(() => ({
+    nb:    souscriptionsTF.length,
+    verse: souscriptionsTF.reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0),
+  }), [souscriptionsTF]);
+
+  const totalVerse = stats.verse_simple + statsTF.verse;
 
   const encaisseurs = useMemo(() => {
     const map = new Map<string, { total: number; count: number }>();
@@ -445,78 +458,112 @@ export default function TerrainsPage() {
       .sort((a, b) => b.total - a.total);
   }, [paiements]);
 
+  const allOffres = [...offresSimples, ...offresTF];
+  const offresVisible = filtreCategorie === 'simple' ? offresSimples
+    : filtreCategorie === 'tf' ? offresTF
+    : allOffres;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
 
-      {/* ══ TERRAINS SIMPLES + TF côte à côte ════════════════════════════════ */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-
-      {/* ── Terrains Simples ── */}
-      <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-black text-gray-900">Terrains Simples</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              Suivi des souscriptions et versements · Objectif : 460 000 FCFA / terrain
-            </p>
-          </div>
-          <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
-            Actualiser
-          </button>
+      {/* ── En-tête ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-gray-900">Terrains</h2>
+          <p className="text-sm text-gray-400 mt-1">Simples · Titre Foncier · GIE Maria Masagna</p>
         </div>
+        <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
+          Actualiser
+        </button>
+      </div>
 
-        {offresSimples.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Offres disponibles ({offresSimples.length})
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {offresSimples.map(o => <OffreSimpleCard key={o.id} offre={o} />)}
-            </div>
+      {/* ── KPIs ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <p className="text-2xl font-black text-blue-600">{stats.nb_simples}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Terrains Simples</p>
+          {stats.verse_simple > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(stats.verse_simple)}</p>}
+        </div>
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <p className="text-2xl font-black text-green-600">{statsTF.nb}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Terrains TF</p>
+          {statsTF.verse > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(statsTF.verse)}</p>}
+        </div>
+        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+          <p className="text-base font-black text-green-700">{formatCurrency(totalVerse)}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Total encaissé</p>
+          <p className="text-xs text-gray-400 mt-1">{(stats.nb_simples) + statsTF.nb} dossier{(stats.nb_simples + statsTF.nb) > 1 ? 's' : ''}</p>
+        </div>
+      </div>
+
+      {/* ── Offres disponibles ── */}
+      {offresVisible.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            Offres disponibles ({offresVisible.length})
+          </p>
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+            {filtreCategorie !== 'tf'   && offresSimples.map(o => <OffreSimpleCard key={o.id} offre={o} />)}
+            {filtreCategorie !== 'simple' && offresTF.map(o => <OffreTFCard key={o.id} offre={o} />)}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Terrains souscrits', value: stats.total_terrains,              color: 'text-gray-900' },
-            { label: 'Total encaissé',     value: formatCurrency(stats.total_verse),  color: 'text-green-600', small: true },
-            { label: 'Reste à encaisser',  value: formatCurrency(stats.total_reste),  color: 'text-amber-600', small: true },
-            { label: 'Dossiers SOLDÉS',    value: stats.nb_soldes,                    color: 'text-blue-600' },
-          ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
-              <p className={`font-black ${s.color} ${s.small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
-            </div>
+      {/* ── Filtres + actions ── */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input
+          type="text"
+          placeholder="Rechercher un membre…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-green-400 placeholder:text-gray-300 bg-white"
+        />
+        <div className="flex gap-1 flex-wrap">
+          {([
+            { id: 'tous',   label: `Tous (${stats.nb_simples + statsTF.nb})` },
+            { id: 'simple', label: `Simples (${stats.nb_simples})` },
+            { id: 'tf',     label: `TF (${statsTF.nb})` },
+          ] as { id: FiltreCategorie; label: string }[]).map(f => (
+            <button key={f.id} onClick={() => setFiltreCategorie(f.id)}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                filtreCategorie === f.id
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'
+              }`}
+            >
+              {f.label}
+            </button>
           ))}
         </div>
+        {filtreCategorie !== 'simple' && (
+          <button onClick={() => setShowDossierModal(true)}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+            + Nouveau dossier TF
+          </button>
+        )}
+      </div>
 
+      {/* ── Section Terrains Simples ── */}
+      {filtreCategorie !== 'tf' && (
+      <div className="space-y-4">
+        {filtreCategorie === 'tous' && (
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wide">Terrains Simples</p>
+        )}
         <div className="space-y-4">
           {/* Table */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="p-4 border-b border-gray-50 flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                placeholder="Rechercher un membre…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-green-400 placeholder:text-gray-300"
-              />
-              <div className="flex gap-1">
-                {(['tous', 'en_cours', 'solde'] as const).map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFiltreStatut(f)}
-                    className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                      filtreStatut === f
-                        ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'
-                    }`}
-                  >
-                    {f === 'tous' ? 'Tous' : f === 'en_cours' ? 'En cours' : 'Soldés'}
-                  </button>
-                ))}
-              </div>
+            <div className="p-4 border-b border-gray-50 flex gap-1 flex-wrap">
+              {(['tous', 'en_cours', 'solde'] as const).map(f => (
+                <button key={f} onClick={() => setFiltreStatut(f)}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                    filtreStatut === f
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  {f === 'tous' ? 'Tous statuts' : f === 'en_cours' ? 'En cours' : 'Soldés'}
+                </button>
+              ))}
             </div>
 
             {loading ? (
@@ -596,7 +643,7 @@ export default function TerrainsPage() {
                   <p className="text-xs text-gray-400 text-center py-4">Aucun versement enregistré</p>
                 ) : (
                   encaisseurs.map(e => {
-                    const pct = stats.total_verse > 0 ? Math.round((e.total / stats.total_verse) * 100) : 0;
+                    const pct = stats.verse_simple > 0 ? Math.round((e.total / stats.verse_simple) * 100) : 0;
                     return (
                       <div key={e.nom}>
                         <div className="flex justify-between text-xs mb-1">
@@ -637,65 +684,30 @@ export default function TerrainsPage() {
             )}
           </div>
         </div>
-      </div>{/* fin Terrains Simples */}
+      </div>
+      )}
 
-      {/* ── Terrains TF ── */}
-      <div className="space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-black text-gray-900">Terrains TF</h2>
-            <p className="text-sm text-gray-400 mt-1">Programme PICLOM · Le Millénium 7SD · Titre Foncier</p>
-          </div>
-          <button
-            onClick={() => setShowDossierModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
-          >
-            + Nouveau dossier TF
-          </button>
-        </div>
-
-        {offresTF.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Offres disponibles ({offresTF.length})
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {offresTF.map(o => <OffreTFCard key={o.id} offre={o} />)}
-            </div>
-          </div>
+      {/* ── Section Terrains TF ── */}
+      {filtreCategorie !== 'simple' && (
+      <div className="space-y-4">
+        {filtreCategorie === 'tous' && (
+          <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains TF</p>
         )}
-
-        {/* KPIs TF */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl border border-gray-100 p-4">
-            <p className="text-2xl font-black text-green-600">{statsTF.nb}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Dossiers TF</p>
-          </div>
-          <div className="bg-white rounded-xl border border-gray-100 p-4">
-            <p className="text-base font-black text-green-700">{formatCurrency(statsTF.verse)}</p>
-            <p className="text-xs text-gray-400 mt-0.5">Total encaissé</p>
-          </div>
-        </div>
-
-        {ltf ? <Spinner /> : souscriptionsTF.length === 0 ? (
+        {ltf ? <Spinner /> : filteredTF.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
             <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
-            <button
-              onClick={() => setShowDossierModal(true)}
-              className="mt-3 text-sm text-green-600 hover:underline"
-            >
+            <button onClick={() => setShowDossierModal(true)} className="mt-3 text-sm text-green-600 hover:underline">
               Créer le premier dossier TF
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {souscriptionsTF.map(s => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredTF.map(s => {
               const m = (membres ?? []).find(mb => mb.id === s.membre_id);
-              const totalVerse = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
-              const totalPct   = s.prix_total > 0 ? Math.round((totalVerse / s.prix_total) * 100) : 0;
+              const tv  = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
+              const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
               return (
-                <div
-                  key={s.id}
+                <div key={s.id}
                   className="bg-white rounded-2xl border border-gray-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
                   onClick={() => setSelectedTF(s)}
                 >
@@ -714,17 +726,16 @@ export default function TerrainsPage() {
                     </span></p>
                   </div>
                   <div className="flex justify-between text-xs text-gray-400 mb-1">
-                    <span>Avancement</span><span>{totalPct}%</span>
+                    <span>Avancement</span><span>{pct}%</span>
                   </div>
-                  <ProgressBar value={totalPct} />
+                  <ProgressBar value={pct} />
                 </div>
               );
             })}
           </div>
         )}
-      </div>{/* fin Terrains TF */}
-
-      </div>{/* fin grid côte à côte */}
+      </div>
+      )}
 
       {/* ── Panneaux ── */}
       {selected && (
