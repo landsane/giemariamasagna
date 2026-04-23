@@ -1,13 +1,64 @@
 import { useState, useMemo } from 'react';
+import { MapPin, Tag } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import {
   fetchMembres,
   fetchSouscriptionsLogement,
   fetchPaiementsLogement,
   fetchPaiementsLogementBySouscription,
+  fetchOffres,
 } from '@/lib/queries';
-import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien } from '@/types';
+import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre } from '@/types';
 import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
+
+// ─── Carte offre active ───────────────────────────────────────────────────────
+function OffreActiveCard({ offre }: { offre: Offre }) {
+  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
+  const acompte    = Math.round(offre.prix_unitaire * offre.taux_acompte);
+  const isTerrainTF = offre.type === 'terrain_tf';
+  const color = isTerrainTF
+    ? { bg: 'bg-green-50 border-green-100', text: 'text-green-900', sub: 'text-green-600' }
+    : offre.sous_type === 'F3'
+      ? { bg: 'bg-purple-50 border-purple-100', text: 'text-purple-900', sub: 'text-purple-600' }
+      : { bg: 'bg-indigo-50 border-indigo-100', text: 'text-indigo-900', sub: 'text-indigo-600' };
+
+  return (
+    <div className={`border rounded-xl p-4 flex flex-col gap-2 ${color.bg}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className={`text-sm font-bold ${color.text}`}>{offre.nom}</p>
+          <p className={`text-xs flex items-center gap-1 mt-0.5 ${color.sub}`}>
+            <MapPin className="w-3 h-3" />{offre.localisation}
+          </p>
+        </div>
+        <Tag className="w-4 h-4 text-gray-300 flex-shrink-0 mt-0.5" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Prix</p>
+          <p className="font-bold text-gray-900">{(offre.prix_unitaire / 1_000_000).toFixed(0)}M</p>
+        </div>
+        {acompte > 0 && (
+          <div className="bg-white rounded-lg p-2 text-center">
+            <p className="text-gray-400">Acompte {Math.round(offre.taux_acompte * 100)}%</p>
+            <p className="font-bold text-amber-700">{(acompte / 1_000_000).toFixed(2)}M</p>
+          </div>
+        )}
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Mensualité</p>
+          <p className="font-bold text-green-700">{(mensualite / 1_000).toFixed(0)}K</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Durée</p>
+          <p className="font-bold text-blue-700">{offre.nb_mensualites} mois</p>
+        </div>
+      </div>
+      {offre.frais_dossier > 0 && (
+        <p className="text-xs text-gray-400">Frais de dossier : {(offre.frais_dossier / 1_000).toFixed(0)} 000 F</p>
+      )}
+    </div>
+  );
+}
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
@@ -231,6 +282,12 @@ export default function LogementsPage() {
   const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsLogement);
   const { data: paiements,     loading: lp               } = useAsync(fetchPaiementsLogement);
+  const { data: toutesOffres                              } = useAsync(fetchOffres);
+
+  const offresActives = useMemo(
+    () => (toutesOffres ?? []).filter(o => (o.type === 'logement' || o.type === 'terrain_tf') && o.statut === 'active'),
+    [toutesOffres]
+  );
 
   const loading = lm || ls || lp;
   const refetchAll = () => { rm(); rs(); };
@@ -287,17 +344,29 @@ export default function LogementsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Villa F2',         value: stats.nb_f2,                            color: 'text-blue-600' },
-          { label: 'Villa F3',         value: stats.nb_f3,                            color: 'text-purple-600' },
-          { label: 'Terrains TF',      value: stats.nb_terrain,                       color: 'text-green-600' },
-          { label: 'Total encaissé',   value: formatCurrency(totalPaiements),          color: 'text-gray-900', small: true },
+          { label: 'Villa F2',       value: stats.nb_f2,               color: 'text-blue-600' },
+          { label: 'Villa F3',       value: stats.nb_f3,               color: 'text-purple-600' },
+          { label: 'Terrains TF',    value: stats.nb_terrain,          color: 'text-green-600' },
+          { label: 'Total encaissé', value: formatCurrency(totalPaiements), color: 'text-gray-900', small: true },
         ].map(s => (
           <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
-            <p className={`font-black ${s.color} ${s.small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
+            <p className={`font-black ${s.color} ${(s as {small?: boolean}).small ? 'text-base' : 'text-2xl'}`}>{s.value}</p>
             <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
+
+      {/* Offres actives */}
+      {offresActives.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            Offres disponibles ({offresActives.length})
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {offresActives.map(o => <OffreActiveCard key={o.id} offre={o} />)}
+          </div>
+        </div>
+      )}
 
       {/* Offre promoteur */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

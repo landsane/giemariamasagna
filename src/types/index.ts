@@ -6,6 +6,7 @@ export interface Membre {
   prenom: string;
   telephone?: string;
   email?: string;
+  photo_url?: string;
   statut: 'actif' | 'inactif';
   modules: ('terrains' | 'logements')[]; // modules souscrits
   created_at: string;

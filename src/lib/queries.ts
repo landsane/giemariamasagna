@@ -83,7 +83,7 @@ export async function fetchNextMembreId(): Promise<string> {
 }
 
 export async function insertMembre(
-  data: Pick<Membre, 'id_membre' | 'nom' | 'prenom' | 'telephone' | 'email' | 'statut'>
+  data: Pick<Membre, 'id_membre' | 'nom' | 'prenom' | 'telephone' | 'email' | 'statut' | 'photo_url'>
 ) {
   const { data: row, error } = await supabase
     .from('membres')
@@ -92,6 +92,31 @@ export async function insertMembre(
     .single();
   if (error) throw error;
   return row;
+}
+
+export async function updateMembre(
+  id: string,
+  data: Partial<Pick<Membre, 'nom' | 'prenom' | 'telephone' | 'email' | 'statut' | 'photo_url'>>
+) {
+  const { data: row, error } = await supabase
+    .from('membres')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return row;
+}
+
+export async function uploadMembrePhoto(membreId: string, file: File): Promise<string> {
+  const ext  = file.name.split('.').pop() ?? 'jpg';
+  const path = `${membreId}.${ext}`;
+  const { error } = await supabase.storage
+    .from('membres-photos')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from('membres-photos').getPublicUrl(path);
+  return data.publicUrl;
 }
 
 // ─── Souscriptions Terrains ───────────────────────────────────────────────────

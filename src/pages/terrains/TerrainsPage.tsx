@@ -1,17 +1,57 @@
 import { useState, useMemo } from 'react';
+import { MapPin, Tag } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import {
   fetchMembres,
   fetchSouscriptionsTerrain,
   fetchPaiementsTerrain,
   fetchPaiementsTerrainBySouscription,
+  fetchOffres,
 } from '@/lib/queries';
-import type { Membre, SouscriptionTerrain, PaiementTerrain } from '@/types';
+import type { Membre, SouscriptionTerrain, PaiementTerrain, Offre } from '@/types';
 import { LABELS_VERSEMENT, LABELS_MODE } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import { formatCurrency, formatDate } from '@/lib/utils';
+
+// ─── Bloc offre active ────────────────────────────────────────────────────────
+function OffreActiveCard({ offre }: { offre: Offre }) {
+  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
+  return (
+    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-bold text-blue-900">{offre.nom}</p>
+          <p className="text-xs text-blue-600 flex items-center gap-1 mt-0.5">
+            <MapPin className="w-3 h-3" />{offre.localisation}
+          </p>
+        </div>
+        <Tag className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Prix/parcelle</p>
+          <p className="font-bold text-gray-900">{formatCurrency(offre.prix_unitaire)}</p>
+        </div>
+        {offre.frais_dossier > 0 && (
+          <div className="bg-white rounded-lg p-2 text-center">
+            <p className="text-gray-400">Frais dossier</p>
+            <p className="font-bold text-gray-700">{formatCurrency(offre.frais_dossier)}</p>
+          </div>
+        )}
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Mensualité</p>
+          <p className="font-bold text-green-700">{formatCurrency(mensualite)}</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 text-center">
+          <p className="text-gray-400">Durée</p>
+          <p className="font-bold text-blue-700">{offre.nb_mensualites} mois</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Panneau de détail ────────────────────────────────────────────────────────
 function DetailSouscription({
@@ -174,6 +214,12 @@ export default function TerrainsPage() {
   const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsTerrain);
   const { data: paiements,     loading: lp               } = useAsync(fetchPaiementsTerrain);
+  const { data: toutesOffres                              } = useAsync(fetchOffres);
+
+  const offresActives = useMemo(
+    () => (toutesOffres ?? []).filter(o => o.type === 'terrain_simple' && o.statut === 'active'),
+    [toutesOffres]
+  );
 
   const loading = lm || ls || lp;
 
@@ -229,6 +275,18 @@ export default function TerrainsPage() {
           Actualiser
         </button>
       </div>
+
+      {/* Offres actives */}
+      {offresActives.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+            Offres disponibles ({offresActives.length})
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {offresActives.map(o => <OffreActiveCard key={o.id} offre={o} />)}
+          </div>
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
