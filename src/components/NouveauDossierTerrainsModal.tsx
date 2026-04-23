@@ -18,8 +18,6 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
   const [bien, setBien]         = useState<Bien>('simple');
   const [offreId, setOffreId]   = useState(offresSimples[0]?.id ?? '');
   const [nbTerrains, setNb]     = useState(1);
-  const [sgbs, setSgbs]         = useState(false);
-  const [site, setSite]         = useState<SiteLogement>('ndoyenne');
   const [membreId, setMembreId] = useState('');
   const [date, setDate]         = useState(new Date().toISOString().slice(0, 10));
   const [saving, setSaving]     = useState(false);
@@ -35,6 +33,13 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
       ? Math.round(prixTotal / offre.nb_mensualites)
       : Math.round(prixTotal / NB_MENSUALITES)
     : 0;
+
+  function siteFromOffre(o: Offre): SiteLogement {
+    const loc = o.localisation.toLowerCase();
+    return loc.includes('keur') || loc.includes('moussa') || loc.includes('diender')
+      ? 'keur_moussa'
+      : 'ndoyenne';
+  }
 
   function switchBien(b: Bien) {
     setBien(b);
@@ -57,7 +62,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
           membre_id:         membreId,
           nb_terrains:       nbTerrains,
           montant_total:     prixTotal,
-          sgbs,
+          sgbs:              false,
           date_souscription: date,
           offre_id:          offreId,
         });
@@ -65,7 +70,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
         await insertSouscriptionLogement({
           membre_id:         membreId,
           type_villa:        'terrain',
-          site,
+          site:              offre ? siteFromOffre(offre) : 'ndoyenne',
           titre:             'TF',
           prix_total:        prixTotal,
           acompte_requis:    acompte,
@@ -179,33 +184,6 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
             </div>
           )}
 
-          {/* ── Site (TF uniquement) ── */}
-          {bien === 'tf' && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Site</p>
-              <div className="grid grid-cols-2 gap-2">
-                {(['ndoyenne', 'keur_moussa'] as SiteLogement[]).map(s => (
-                  <button key={s} onClick={() => setSite(s)}
-                    className={`border-2 rounded-xl p-3 text-left transition-all ${
-                      site === s ? 'border-green-400 bg-green-50' : 'border-gray-100 hover:border-gray-200'
-                    }`}
-                  >
-                    <p className="text-xs font-semibold text-gray-900">{s === 'ndoyenne' ? 'Ndoyenne 01' : 'Keur Moussa'}</p>
-                    <p className="text-xs text-gray-400">{s === 'ndoyenne' ? 'Sébikhotane' : 'Diender'}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── SGBS (Simple uniquement) ── */}
-          {bien === 'simple' && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={sgbs} onChange={e => setSgbs(e.target.checked)}
-                className="w-4 h-4 accent-blue-600" />
-              <span className="text-sm text-gray-700">Paiement via compte SGBS</span>
-            </label>
-          )}
 
           {/* ── Membre ── */}
           <div>
