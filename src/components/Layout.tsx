@@ -1,103 +1,84 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Map, Building2, Tag, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutDashboard, Users, Map, Building2, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
-  { to: '/membres',   icon: Users,           label: 'Membres'          },
-  { to: '/terrains',  icon: Map,             label: 'Terrains Simples' },
-  { to: '/logements', icon: Building2,       label: 'Logements / TF'   },
-  { to: '/offres',    icon: Tag,             label: 'Offres'            },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Accueil',    short: 'Accueil'    },
+  { to: '/membres',   icon: Users,           label: 'Membres',    short: 'Membres'    },
+  { to: '/terrains',  icon: Map,             label: 'Terrains',   short: 'Terrains'   },
+  { to: '/logements', icon: Building2,       label: 'Logements',  short: 'Logements'  },
+  { to: '/offres',    icon: Tag,             label: 'Offres',     short: 'Offres'     },
 ];
 
 export default function Layout() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* ── Barre de navigation horizontale ── */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 shadow-sm">
-        <div className="flex items-center h-14 px-4 gap-4">
+    <div className="flex flex-col min-h-screen min-h-dvh bg-gray-50">
+
+      {/* ── Header compact (mobile + desktop) ── */}
+      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 safe-top">
+        <div className="flex items-center justify-between h-13 px-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-black text-sm"
-              style={{ background: 'linear-gradient(135deg, #16A34A, #15803D)' }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-xs"
+              style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)' }}
             >G</div>
-            <div className="hidden sm:block">
-              <p className="font-black text-sm text-gray-900 leading-none">GIE Maria</p>
-              <p className="text-[10px] text-gray-400">Masagna</p>
+            <div>
+              <p className="font-black text-sm text-gray-900 leading-none">GIE Maria Masagna</p>
             </div>
           </div>
 
-          {/* Séparateur */}
-          <div className="hidden lg:block w-px h-5 bg-gray-200" />
-
-          {/* Nav items — desktop */}
-          <nav className="hidden lg:flex items-center gap-0.5 flex-1">
+          {/* Nav desktop (≥ lg) */}
+          <nav className="hidden lg:flex items-center gap-0.5">
             {NAV.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
-                    isActive
-                      ? 'bg-green-50 text-green-700'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
-                  )
-                }
+              <NavLink key={to} to={to}
+                className={({ isActive }) => cn(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                  isActive ? 'bg-green-50 text-green-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                )}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                {label}
+                <Icon className="w-4 h-4 shrink-0" />{label}
               </NavLink>
             ))}
           </nav>
 
-          {/* Titre courant — tablette */}
-          <div className="flex-1 lg:hidden">
-            <PageTitle />
-          </div>
-
-          {/* Bouton hamburger — mobile/tablette */}
-          <button
-            className="lg:hidden ml-auto h-8 w-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-            onClick={() => setMenuOpen(v => !v)}
-          >
-            {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
+          {/* Titre page courant (mobile) */}
+          <PageTitle />
         </div>
-
-        {/* Menu déroulant mobile */}
-        {menuOpen && (
-          <div className="lg:hidden border-t border-gray-100 bg-white px-3 py-2 space-y-0.5">
-            {NAV.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
-                    isActive
-                      ? 'bg-green-50 text-green-700'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
-                  )
-                }
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        )}
       </header>
 
-      {/* Contenu */}
-      <main className="flex-1 p-4 md:p-6">
+      {/* ── Contenu ── */}
+      <main className="flex-1 p-3 sm:p-4 md:p-6 pb-24 lg:pb-6 overflow-x-hidden">
         <Outlet />
       </main>
+
+      {/* ── Barre de navigation bas (mobile / tablette) ── */}
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex items-stretch"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        {NAV.map(({ to, icon: Icon, short }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) => cn(
+              'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] transition-colors',
+              isActive ? 'text-green-600' : 'text-gray-400 active:text-green-500'
+            )}
+          >
+            {({ isActive }) => (
+              <>
+                <Icon className={cn('w-5 h-5 transition-transform', isActive && 'scale-110')} />
+                <span className={cn('text-[10px] font-medium leading-none', isActive ? 'text-green-600' : 'text-gray-400')}>
+                  {short}
+                </span>
+                {isActive && <span className="absolute bottom-0 w-8 h-0.5 bg-green-500 rounded-full" />}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+
     </div>
   );
 }
@@ -105,5 +86,9 @@ export default function Layout() {
 function PageTitle() {
   const { pathname } = useLocation();
   const match = NAV.find(n => pathname.startsWith(n.to));
-  return <h1 className="text-base font-semibold text-gray-900">{match?.label ?? 'GIE Maria Masagna'}</h1>;
+  return (
+    <p className="lg:hidden text-sm font-semibold text-gray-500">
+      {match?.label ?? ''}
+    </p>
+  );
 }

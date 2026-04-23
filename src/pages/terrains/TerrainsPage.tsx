@@ -72,9 +72,9 @@ function DetailSouscription({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-start justify-end z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
       <div
-        className="bg-white h-full w-full max-w-md shadow-2xl overflow-y-auto flex flex-col"
+        className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
@@ -333,40 +333,59 @@ export default function TerrainsPage() {
 
           {loading ? (
             <Spinner />
+          ) : filtered.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-400">Aucune souscription trouvée</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
-                    <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Nbre</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Versé</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Reste</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4 min-w-[110px]">Avancement</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
-                    <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-12 text-center text-sm text-gray-400">
-                        Aucune souscription trouvée
-                      </td>
+            <>
+              {/* Mobile : liste compacte */}
+              <div className="sm:hidden divide-y divide-gray-50">
+                {filtered.map(s => {
+                  const m = (membres ?? []).find(mb => mb.id === s.membre_id);
+                  return (
+                    <div key={s.id} onClick={() => setSelected(s)}
+                      className="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-400 to-green-600 text-white flex items-center justify-center text-xs font-black flex-shrink-0">
+                        {m ? `${m.prenom[0]}${m.nom[0]}` : '??'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{m?.prenom} {m?.nom}</p>
+                        <p className="text-xs text-gray-400">{m?.id_membre} · {s.nb_terrains} terrain{s.nb_terrains > 1 ? 's' : ''}</p>
+                        <ProgressBar value={s.pourcentage} className="mt-1" />
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="text-sm font-bold text-green-700">{formatCurrency(s.montant_verse)}</p>
+                        <Badge variant={s.statut === 'solde' ? 'green' : s.pourcentage >= 75 ? 'blue' : 'amber'} className="mt-0.5">
+                          {s.statut === 'solde' ? 'SOLDÉ' : `${s.pourcentage}%`}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop : table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Membre</th>
+                      <th className="text-center text-xs font-semibold text-gray-400 py-3 px-4">Nbre</th>
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Versé</th>
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Reste</th>
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4 min-w-[110px]">Avancement</th>
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Statut</th>
+                      <th className="text-left text-xs font-semibold text-gray-400 py-3 px-4">Date</th>
                     </tr>
-                  ) : (
-                    filtered.map(s => (
-                      <SouscriptionRow
-                        key={s.id}
-                        s={s}
-                        membres={membres ?? []}
-                        onSelect={setSelected}
-                      />
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filtered.map(s => (
+                      <SouscriptionRow key={s.id} s={s} membres={membres ?? []} onSelect={setSelected} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+
           )}
 
           <div className="px-4 py-3 border-t border-gray-50 flex items-center justify-between">

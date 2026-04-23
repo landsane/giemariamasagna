@@ -105,8 +105,8 @@ function DetailLogement({
   const totalPct       = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-start justify-end z-50" onClick={onClose}>
-      <div className="bg-white h-full w-full max-w-md shadow-2xl overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
+      <div className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
