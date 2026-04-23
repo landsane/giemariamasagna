@@ -502,7 +502,7 @@ export default function TerrainsPage() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
             Offres disponibles ({offresVisible.length})
           </p>
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
             {filtreCategorie !== 'tf'   && offresSimples.map(o => <OffreSimpleCard key={o.id} offre={o} />)}
             {filtreCategorie !== 'simple' && offresTF.map(o => <OffreTFCard key={o.id} offre={o} />)}
           </div>
