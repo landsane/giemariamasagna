@@ -31,12 +31,13 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
   const [type, setType]         = useState<Exclude<TypeBien, 'terrain'>>(
     initialType === 'terrain' ? 'F2' : ((initialType ?? 'F2') as Exclude<TypeBien, 'terrain'>)
   );
-  const [offreId, setOffreId]   = useState('');
-  const [membreId, setMembreId] = useState('');
-  const [prixInput, setPrix]    = useState('');
-  const [date, setDate]         = useState(new Date().toISOString().slice(0, 10));
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState('');
+  const [offreId, setOffreId]     = useState('');
+  const [nbLogements, setNbLog]   = useState(1);
+  const [membreId, setMembreId]   = useState('');
+  const [prixInput, setPrix]      = useState('');
+  const [date, setDate]           = useState(new Date().toISOString().slice(0, 10));
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
 
   const offresForType = (offres ?? []).filter(
     o => o.type === 'logement' && o.sous_type === type && o.statut === 'active'
@@ -44,17 +45,19 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
 
   const selectedOffre   = offresForType.find(o => o.id === offreId) ?? offresForType[0];
   const prixBase        = selectedOffre?.prix_unitaire ?? (type === 'F2' ? PRIX_F2 : PRIX_F3);
-  const prixTotal       = isTerrainContext
+  const prixUnitaire    = isTerrainContext
     ? parseInt(prixInput.replace(/\s/g, ''), 10) || 0
     : prixBase;
+  const prixTotal       = prixUnitaire * (isTerrainContext ? 1 : nbLogements);
   const tauxAcompte     = selectedOffre?.taux_acompte ?? TAUX_ACOMPTE;
   const nbMensualites   = selectedOffre?.nb_mensualites ?? NB_MENSUALITES;
-  const acompte         = Math.round(prixTotal * tauxAcompte);
-  const mensualite      = prixTotal > 0 ? Math.round(prixTotal / nbMensualites) : 0;
+  const acompte         = Math.round(prixUnitaire * tauxAcompte);
+  const mensualite      = prixUnitaire > 0 ? Math.round(prixUnitaire / nbMensualites) : 0;
 
   function handleTypeChange(t: Exclude<TypeBien, 'terrain'>) {
     setType(t);
     setOffreId('');
+    setNbLog(1);
   }
 
   const membresActifs = membres.filter(m => m.statut === 'actif');
@@ -66,17 +69,21 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
     setSaving(true);
     setError('');
     try {
-      await insertSouscriptionLogement({
-        membre_id:         membreId,
-        type_villa:        isTerrainContext ? 'terrain' : type,
-        site:              selectedOffre ? siteFromOffre(selectedOffre) : 'ndoyenne',
-        titre:             'TF',
-        prix_total:        prixTotal,
-        acompte_requis:    acompte,
-        mensualite,
-        date_souscription: date,
-        offre_id:          selectedOffre?.id,
-      });
+      await Promise.all(
+        Array.from({ length: isTerrainContext ? 1 : nbLogements }, () =>
+          insertSouscriptionLogement({
+            membre_id:         membreId,
+            type_villa:        isTerrainContext ? 'terrain' : type,
+            site:              selectedOffre ? siteFromOffre(selectedOffre) : 'ndoyenne',
+            titre:             'TF',
+            prix_total:        prixUnitaire,
+            acompte_requis:    acompte,
+            mensualite,
+            date_souscription: date,
+            offre_id:          selectedOffre?.id,
+          })
+        )
+      );
       onCreated();
       onClose();
     } catch (e: unknown) {
@@ -196,6 +203,21 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
                 onChange={e => setPrix(e.target.value)}
                 className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300"
               />
+            </div>
+          )}
+
+          {/* ── Nombre de logements ── */}
+          {!isTerrainContext && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nombre de logements</p>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setNbLog(Math.max(1, nbLogements - 1))}
+                  className="w-10 h-10 rounded-xl border border-gray-200 text-gray-700 text-lg font-bold hover:bg-gray-50 transition-colors">−</button>
+                <span className="text-2xl font-black text-gray-900 w-10 text-center">{nbLogements}</span>
+                <button onClick={() => setNbLog(nbLogements + 1)}
+                  className="w-10 h-10 rounded-xl border border-gray-200 text-gray-700 text-lg font-bold hover:bg-gray-50 transition-colors">+</button>
+                {prixUnitaire > 0 && <span className="text-xs text-gray-400 ml-1">× {formatCurrency(prixUnitaire)}</span>}
+              </div>
             </div>
           )}
 

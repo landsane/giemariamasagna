@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MapPin, Tag } from 'lucide-react';
 import type { Membre, Offre, SiteLogement } from '@/types';
 import { TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
@@ -131,22 +132,50 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
             </p>
           ) : (
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Offre</p>
-              <div className="space-y-1.5">
-                {offres.map(o => (
-                  <button key={o.id} onClick={() => setOffreId(o.id)}
-                    className={`w-full border-2 rounded-xl p-3 text-left transition-all ${
-                      offreId === o.id
-                        ? bien === 'simple' ? 'border-blue-400 bg-blue-50' : 'border-green-400 bg-green-50'
-                        : 'border-gray-100 hover:border-gray-200'
-                    }`}
-                  >
-                    <p className="text-sm font-bold text-gray-900">{o.nom}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {o.localisation} · {formatCurrency(o.prix_unitaire)}/parcelle · {o.nb_mensualites} mois
-                    </p>
-                  </button>
-                ))}
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Offre{offres.length > 1 ? 's' : ''} disponible{offres.length > 1 ? 's' : ''}
+              </p>
+              <div className="space-y-2">
+                {offres.map(o => {
+                  const mens = Math.round(o.prix_unitaire / o.nb_mensualites);
+                  const acc  = Math.round(o.prix_unitaire * o.taux_acompte);
+                  const isSelected = (offreId || offres[0]?.id) === o.id;
+                  return (
+                    <button key={o.id} onClick={() => setOffreId(o.id)}
+                      className={`w-full border-2 rounded-xl p-3 text-left transition-all ${
+                        isSelected
+                          ? bien === 'simple' ? 'border-blue-400 bg-blue-50' : 'border-green-400 bg-green-50'
+                          : 'border-gray-100 hover:border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{o.nom}</p>
+                          <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3 h-3" />{o.localisation}
+                          </p>
+                        </div>
+                        <Tag className="w-4 h-4 text-gray-300 flex-shrink-0 mt-0.5" />
+                      </div>
+                      <div className={`grid gap-2 text-xs mt-2 ${bien === 'tf' && acc > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                        <div className="bg-white rounded-lg p-2 text-center">
+                          <p className="text-gray-400">Prix/parcelle</p>
+                          <p className="font-bold text-gray-900">{formatCurrency(o.prix_unitaire)}</p>
+                        </div>
+                        {bien === 'tf' && acc > 0 && (
+                          <div className="bg-white rounded-lg p-2 text-center">
+                            <p className="text-gray-400">Acompte {Math.round(o.taux_acompte * 100)}%</p>
+                            <p className="font-bold text-amber-700">{formatCurrency(acc)}</p>
+                          </div>
+                        )}
+                        <div className="bg-white rounded-lg p-2 text-center">
+                          <p className="text-gray-400">Mensualité</p>
+                          <p className="font-bold text-green-700">{formatCurrency(mens)}/mois</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -165,25 +194,6 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
               )}
             </div>
           </div>
-
-          {/* ── Récap prix ── */}
-          {prixTotal > 0 && (
-            <div className={`rounded-xl p-3 text-xs ${bien === 'simple' ? 'bg-blue-50' : 'bg-green-50'}`}>
-              {bien === 'simple' ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <div><p className="text-gray-400">Montant total</p><p className="font-bold text-gray-900">{formatCurrency(prixTotal)}</p></div>
-                  <div><p className="text-gray-400">Mensualité</p><p className="font-bold text-green-700">{formatCurrency(mensualite)}/mois</p></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-2">
-                  <div><p className="text-gray-400">Total</p><p className="font-bold text-gray-900">{formatCurrency(prixTotal)}</p></div>
-                  <div><p className="text-gray-400">Acompte 8%</p><p className="font-bold text-amber-700">{formatCurrency(acompte)}</p></div>
-                  <div><p className="text-gray-400">Mensualité</p><p className="font-bold text-green-700">{formatCurrency(mensualite)}/mois</p></div>
-                </div>
-              )}
-            </div>
-          )}
-
 
           {/* ── Membre ── */}
           <div>
