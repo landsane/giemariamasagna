@@ -27,6 +27,18 @@ export async function fetchMembres(): Promise<Membre[]> {
   }));
 }
 
+export async function fetchNextMembreId(): Promise<string> {
+  const { data } = await supabase
+    .from('membres')
+    .select('id_membre')
+    .order('id_membre', { ascending: false })
+    .limit(1)
+    .single();
+  if (!data) return 'SN001';
+  const num = parseInt(data.id_membre.replace('SN', ''), 10);
+  return `SN${String(num + 1).padStart(3, '0')}`;
+}
+
 export async function insertMembre(
   data: Pick<Membre, 'id_membre' | 'nom' | 'prenom' | 'telephone' | 'email' | 'statut'>
 ) {
