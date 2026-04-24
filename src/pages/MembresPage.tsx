@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { MoreVertical, Pencil, Archive, ArchiveRestore } from 'lucide-react';
+import { MoreVertical, Pencil, Archive, ArchiveRestore, Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, updateMembre } from '@/lib/queries';
 import type { Membre, SouscriptionTerrain, SouscriptionLogement } from '@/types';
@@ -8,6 +8,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import MembreFormModal from '@/components/MembreFormModal';
+import ImportModal from '@/components/ImportModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux';
@@ -187,7 +188,8 @@ export default function MembresPage() {
   const [tab, setTab]         = useState<'actif' | 'inactif'>('actif');
   const [filtre, setFiltre]   = useState<Filtre>('tous');
   const [editing, setEditing] = useState<Membre | null>(null);
-  const [showNew, setShowNew] = useState(false);
+  const [showNew,    setShowNew]    = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const { data: membres,   loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: terrains,  loading: lt, refetch: rt } = useAsync(fetchSouscriptionsTerrain);
@@ -263,10 +265,16 @@ export default function MembresPage() {
           <h2 className="text-xl font-black text-gray-900">Membres</h2>
           <p className="text-sm text-gray-400 mt-1">{stats.total} membres · {stats.actifs} actifs</p>
         </div>
-        <button onClick={() => setShowNew(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm whitespace-nowrap">
-          + Nouveau membre
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 border border-emerald-300 text-emerald-700 text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors hover:bg-emerald-50 whitespace-nowrap">
+            <Upload className="w-4 h-4" /> Importer
+          </button>
+          <button onClick={() => setShowNew(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm whitespace-nowrap">
+            + Nouveau membre
+          </button>
+        </div>
       </div>
 
       {/* Onglets */}
@@ -354,6 +362,9 @@ export default function MembresPage() {
       )}
       {editing && (
         <MembreFormModal initial={editing} onClose={() => setEditing(null)} onSaved={refetchAll} />
+      )}
+      {showImport && (
+        <ImportModal type="membres" onClose={() => setShowImport(false)} onImported={refetchAll} />
       )}
     </div>
   );

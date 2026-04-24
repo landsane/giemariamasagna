@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { MapPin, Tag } from 'lucide-react';
+import { MapPin, Tag, Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import {
   fetchMembres,
@@ -16,6 +16,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModal';
+import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -402,6 +403,7 @@ export default function TerrainsPage() {
   const [selected, setSelected]           = useState<SouscriptionTerrain | null>(null);
   const [selectedTF, setSelectedTF]       = useState<SouscriptionLogement | null>(null);
   const [showNouveauDossier, setShowNouveauDossier] = useState(false);
+  const [showImport,         setShowImport]         = useState(false);
 
   const { data: membres,          loading: lm, refetch: rm  } = useAsync(fetchMembres);
   const { data: souscriptions,    loading: ls, refetch: rs  } = useAsync(fetchSouscriptionsTerrain);
@@ -557,10 +559,16 @@ export default function TerrainsPage() {
             </button>
           ))}
         </div>
-        <button onClick={() => setShowNouveauDossier(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
-          + Nouveau dossier
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 border border-emerald-300 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors hover:bg-emerald-50 whitespace-nowrap">
+            <Upload className="w-4 h-4" /> Importer
+          </button>
+          <button onClick={() => setShowNouveauDossier(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+            + Nouveau dossier
+          </button>
+        </div>
       </div>
 
       {/* ── Section Terrains Simples ── */}
@@ -721,6 +729,15 @@ export default function TerrainsPage() {
           offresTF={offresTF}
           onClose={() => setShowNouveauDossier(false)}
           onCreated={refetchAll}
+        />
+      )}
+      {showImport && (
+        <ImportModal
+          type="terrains"
+          membres={membres ?? []}
+          offres={toutesOffres ?? []}
+          onClose={() => setShowImport(false)}
+          onImported={refetchAll}
         />
       )}
     </div>

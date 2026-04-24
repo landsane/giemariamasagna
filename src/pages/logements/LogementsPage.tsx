@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { MapPin, Tag } from 'lucide-react';
+import { MapPin, Tag, Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import {
   fetchMembres,
@@ -11,6 +11,7 @@ import {
 import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre, TypePaiementLogement } from '@/types';
 import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
 import VersementLogementModal from '@/components/VersementLogementModal';
+import ImportModal from '@/components/ImportModal';
 
 // ─── Carte offre active ───────────────────────────────────────────────────────
 function OffreActiveCard({ offre }: { offre: Offre }) {
@@ -289,7 +290,8 @@ export default function LogementsPage() {
   const [filtreStatut, setFiltreStatut] = useState<FiltreStatut>('tous');
   const [filtreType, setFiltreType]     = useState<FiltreType>('tous');
   const [selected, setSelected]         = useState<SouscriptionLogement | null>(null);
-  const [showModal, setShowModal]       = useState(false);
+  const [showModal,  setShowModal]  = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsLogement);
@@ -430,12 +432,18 @@ export default function LogementsPage() {
             </button>
           ))}
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
-        >
-          + Nouveau dossier
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 border border-emerald-300 text-emerald-700 text-sm font-semibold px-4 py-2 rounded-xl transition-colors hover:bg-emerald-50 whitespace-nowrap">
+            <Upload className="w-4 h-4" /> Importer
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+          >
+            + Nouveau dossier
+          </button>
+        </div>
       </div>
 
       {/* Grille de dossiers */}
@@ -471,6 +479,15 @@ export default function LogementsPage() {
           offres={toutesOffres ?? []}
           onClose={() => setShowModal(false)}
           onCreated={refetchAll}
+        />
+      )}
+      {showImport && (
+        <ImportModal
+          type="logements"
+          membres={membres ?? []}
+          offres={toutesOffres ?? []}
+          onClose={() => setShowImport(false)}
+          onImported={refetchAll}
         />
       )}
     </div>
