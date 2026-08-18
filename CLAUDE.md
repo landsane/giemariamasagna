@@ -9,7 +9,26 @@ L'utilisateur a explicitement demandé de gérer les prochains déploiements en 
 ### Git / Vercel
 
 - `git push` sur `master` est autorisé sans confirmation.
-- Le déploiement Vercel se fait automatiquement via l'intégration GitHub — pas besoin de CLI Vercel ni de token pour ça.
+- ⚠️ **L'auto-deploy GitHub → Vercel ne se déclenche plus depuis le 24/04/2026** (constaté le 19/08/2026 : aucun déploiement Vercel ni webhook GitHub pour les commits poussés depuis, alors que le projet est bien lié en Git côté Vercel — cause exacte non identifiée, à vérifier un jour côté dashboard Vercel → Settings → Git si besoin de la restaurer).
+- **En attendant, après chaque `git push` sur `master`, déclencher le déploiement manuellement via l'API REST Vercel** (le token `VERCEL_TOKEN` est dans `.env.local`) :
+
+```bash
+export VERCEL_TOKEN=$(grep VERCEL_TOKEN .env.local | cut -d= -f2)
+SHA=$(git rev-parse HEAD)
+
+curl -s -X POST "https://api.vercel.com/v13/deployments?teamId=team_3XvfJiqyPfISceMxZohHze3A" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+  -d "{\"name\":\"giemariamasagna\",\"project\":\"prj_LrAkC01b9FpQ5yy59sgkZ6PI3aIa\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":1218093826,\"ref\":\"master\",\"sha\":\"$SHA\"}}"
+```
+
+Récupérer l'`id` (`dpl_...`) de la réponse, puis poller jusqu'à `"readyState":"READY"` :
+
+```bash
+curl -s "https://api.vercel.com/v13/deployments/<dpl_id>?teamId=team_3XvfJiqyPfISceMxZohHze3A" \
+  -H "Authorization: Bearer $VERCEL_TOKEN" | grep -o '"readyState":"[A-Z]*"'
+```
+
+**Ne jamais faire `vercel login`** avec ce token (ni aucun autre) — la session CLI Vercel est partagée entre tous les projets de la machine ([[feedback_vercel_cli_shared_auth]]). Toujours passer par `--token=...` sur la CLI ou par l'API REST directement (comme ci-dessus).
 
 ### Supabase — migrations de schéma
 
