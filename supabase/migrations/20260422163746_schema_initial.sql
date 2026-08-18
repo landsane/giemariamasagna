@@ -1,13 +1,6 @@
 -- ============================================================
 -- GIE Maria Masagna — Schema Supabase
---
--- ⚠️ ARCHIVE — NE PLUS EXÉCUTER MANUELLEMENT.
--- Ce script a déjà été appliqué en production et son historique est
--- désormais suivi par le CLI Supabase (voir supabase/migrations/
--- 20260422163746_schema_initial.sql, copie exacte de ce fichier).
--- Le rejouer via le SQL Editor provoquera des erreurs (policies déjà
--- existantes). Pour toute évolution de schéma, créer une nouvelle
--- migration : `supabase migration new <nom>` puis `supabase db push`.
+-- À exécuter dans : Supabase → SQL Editor → New query
 -- ============================================================
 
 -- Extensions

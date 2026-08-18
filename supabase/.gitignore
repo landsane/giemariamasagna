@@ -1,0 +1,4 @@
+# Supabase CLI local artifacts (jamais committés)
+.branches
+.temp
+.env

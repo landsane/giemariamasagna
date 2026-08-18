@@ -1,13 +1,6 @@
 -- ============================================================
 -- Migration : table offres + rattachement aux souscriptions
---
--- ⚠️ ARCHIVE — NE PLUS EXÉCUTER MANUELLEMENT.
--- Ce script a déjà été appliqué en production et son historique est
--- désormais suivi par le CLI Supabase (voir supabase/migrations/
--- 20260423090147_offres.sql, copie exacte de ce fichier).
--- Le rejouer via le SQL Editor dupliquerait les 7 offres de départ.
--- Pour toute évolution de schéma, créer une nouvelle migration :
--- `supabase migration new <nom>` puis `supabase db push`.
+-- À exécuter dans Supabase → SQL Editor → New query
 -- ============================================================
 
 -- ─── TABLE OFFRES ────────────────────────────────────────────
