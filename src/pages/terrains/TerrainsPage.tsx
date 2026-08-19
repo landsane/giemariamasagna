@@ -75,7 +75,7 @@ function OffreTFCard({ offre }: { offre: Offre }) {
         </div>
         <Tag className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+      <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="bg-white rounded-lg p-2 text-center">
           <p className="text-gray-400">Prix</p>
           <p className="font-bold text-gray-900">{formatCurrency(offre.prix_unitaire)}</p>
@@ -564,7 +564,7 @@ export default function TerrainsPage() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
             Offres disponibles ({offresVisible.length})
           </p>
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filtreCategorie !== 'tf'   && offresSimples.map(o => <OffreSimpleCard key={o.id} offre={o} />)}
             {filtreCategorie !== 'simple' && offresTF.map(o => <OffreTFCard key={o.id} offre={o} />)}
           </div>

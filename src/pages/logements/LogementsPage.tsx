@@ -399,7 +399,7 @@ export default function LogementsPage() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
             Offres disponibles ({offresActives.length})
           </p>
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {offresActives.map(o => <OffreActiveCard key={o.id} offre={o} />)}
           </div>
         </div>
