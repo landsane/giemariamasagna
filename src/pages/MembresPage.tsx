@@ -68,7 +68,7 @@ function BlocLogement({ s, offre }: { s: SouscriptionLogement; offre?: Offre }) 
   const dotClass = isTerrainTF ? 'bg-green-500'                       : s.type_villa === 'F3' ? 'bg-purple-500'                    : 'bg-indigo-500';
   const textCls  = isTerrainTF ? 'text-green-800'                     : s.type_villa === 'F3' ? 'text-purple-800'                  : 'text-indigo-800';
   const titre    = isTerrainTF
-    ? `Terrain TF · ${localisation}`
+    ? `Terrain TF · ${localisation} · ${s.nb_terrains} parcelle${s.nb_terrains > 1 ? 's' : ''}`
     : `Villa ${s.type_villa} · ${localisation} · ${s.titre}`;
 
   const sv = s.statut === 'livre' ? 'green' : s.statut === 'attribue' ? 'blue' : s.statut === 'valide' ? 'purple' : 'amber';

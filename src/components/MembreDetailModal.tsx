@@ -168,6 +168,7 @@ function SectionLogement({
   const isTerrainTF = souscription.type_villa === 'terrain';
   const totalVerse  = souscription.acompte_verse + souscription.nb_mensualites_payees * souscription.mensualite;
   const totalPct    = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
+  const prixUnitaire = offre?.prix_unitaire ?? Math.round(souscription.prix_total / (souscription.nb_terrains || 1));
 
   const colors = isTerrainTF
     ? { bg: 'bg-green-50/60 border-green-100', text: 'text-green-900', icon: 'text-green-600', sub: 'text-green-600' }
@@ -194,6 +195,11 @@ function SectionLogement({
             {offre && (
               <p className={`text-[11px] flex items-center gap-1 ${colors.sub}`}>
                 <MapPin className="w-3 h-3" />{offre.localisation}
+              </p>
+            )}
+            {isTerrainTF && (
+              <p className={`text-[11px] ${colors.sub}`}>
+                {souscription.nb_terrains} parcelle{souscription.nb_terrains > 1 ? 's' : ''} × {formatCurrency(prixUnitaire)}
               </p>
             )}
           </div>

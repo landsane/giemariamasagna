@@ -94,7 +94,7 @@ export const paiementsTerrain: PaiementTerrain[] = [
 export const souscriptionsLogement: SouscriptionLogement[] = [
   {
     id: 'sl1', membre_id: 'm2',
-    type_villa: 'F3', site: 'ndoyenne', titre: 'TF',
+    type_villa: 'F3', site: 'ndoyenne', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F3,
     acompte_requis: Math.round(PRIX_F3 * TAUX_ACOMPTE),
     acompte_verse: 1_200_000,
@@ -105,7 +105,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl2', membre_id: 'm4',
-    type_villa: 'F2', site: 'keur_moussa', titre: 'TF',
+    type_villa: 'F2', site: 'keur_moussa', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F2,
     acompte_requis: Math.round(PRIX_F2 * TAUX_ACOMPTE),
     acompte_verse: Math.round(PRIX_F2 * TAUX_ACOMPTE),
@@ -116,7 +116,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl3', membre_id: 'm6',
-    type_villa: 'F2', site: 'ndoyenne', titre: 'bail',
+    type_villa: 'F2', site: 'ndoyenne', titre: 'bail', nb_terrains: 1,
     prix_total: PRIX_F2,
     acompte_requis: Math.round(PRIX_F2 * TAUX_ACOMPTE),
     acompte_verse: 600_000,
@@ -127,7 +127,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl4', membre_id: 'm9',
-    type_villa: 'F3', site: 'keur_moussa', titre: 'TF',
+    type_villa: 'F3', site: 'keur_moussa', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F3,
     acompte_requis: Math.round(PRIX_F3 * TAUX_ACOMPTE),
     acompte_verse: Math.round(PRIX_F3 * TAUX_ACOMPTE),
@@ -138,7 +138,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl5', membre_id: 'm13',
-    type_villa: 'F2', site: 'ndoyenne', titre: 'TF',
+    type_villa: 'F2', site: 'ndoyenne', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F2,
     acompte_requis: Math.round(PRIX_F2 * TAUX_ACOMPTE),
     acompte_verse: 0,
@@ -149,7 +149,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl6', membre_id: 'm14',
-    type_villa: 'F3', site: 'ndoyenne', titre: 'TF',
+    type_villa: 'F3', site: 'ndoyenne', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F3,
     acompte_requis: Math.round(PRIX_F3 * TAUX_ACOMPTE),
     acompte_verse: 800_000,
@@ -160,7 +160,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl7', membre_id: 'm19',
-    type_villa: 'F2', site: 'keur_moussa', titre: 'bail',
+    type_villa: 'F2', site: 'keur_moussa', titre: 'bail', nb_terrains: 1,
     prix_total: PRIX_F2,
     acompte_requis: Math.round(PRIX_F2 * TAUX_ACOMPTE),
     acompte_verse: Math.round(PRIX_F2 * TAUX_ACOMPTE),
@@ -171,7 +171,7 @@ export const souscriptionsLogement: SouscriptionLogement[] = [
   },
   {
     id: 'sl8', membre_id: 'm20',
-    type_villa: 'F3', site: 'ndoyenne', titre: 'TF',
+    type_villa: 'F3', site: 'ndoyenne', titre: 'TF', nb_terrains: 1,
     prix_total: PRIX_F3,
     acompte_requis: Math.round(PRIX_F3 * TAUX_ACOMPTE),
     acompte_verse: Math.round(PRIX_F3 * TAUX_ACOMPTE),

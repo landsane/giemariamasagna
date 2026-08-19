@@ -69,6 +69,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
           type_villa:        'terrain',
           site:              offre ? siteFromOffre(offre) : 'ndoyenne',
           titre:             'TF',
+          nb_terrains:       nbTerrains,
           prix_total:        prixTotal,
           acompte_requis:    acompte,
           mensualite,

@@ -241,7 +241,7 @@ export async function insertSouscriptionLogement(
     SouscriptionLogement,
     'membre_id' | 'type_villa' | 'site' | 'titre' |
     'prix_total' | 'acompte_requis' | 'mensualite' | 'date_souscription'
-  > & { offre_id?: string }
+  > & { offre_id?: string; nb_terrains?: number }
 ) {
   const { data: row, error } = await supabase
     .from('souscriptions_logements')

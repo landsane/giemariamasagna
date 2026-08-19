@@ -243,6 +243,7 @@ function DetailTerrainTF({
     [souscription.id]
   );
 
+  const prixUnitaire = offre?.prix_unitaire ?? Math.round(souscription.prix_total / (souscription.nb_terrains || 1));
   const acomptePct = souscription.acompte_requis > 0
     ? Math.round((souscription.acompte_verse / souscription.acompte_requis) * 100)
     : 0;
@@ -267,6 +268,18 @@ function DetailTerrainTF({
         </div>
 
         <div className="p-6 border-b border-gray-50 space-y-4">
+          <div className="bg-green-50 border border-green-100 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] text-green-600 uppercase tracking-wide">Parcelles souscrites</p>
+              <p className="text-lg font-black text-green-800">
+                {souscription.nb_terrains} parcelle{souscription.nb_terrains > 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-green-600 uppercase tracking-wide">Prix / parcelle</p>
+              <p className="text-sm font-bold text-green-800">{formatCurrency(prixUnitaire)}</p>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{localisationSouscription(offre, souscription.site, LABELS_SITE)}</p></div>
             <div><p className="text-gray-400">Prix total</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.prix_total)}</p></div>
@@ -694,7 +707,8 @@ export default function TerrainsPage() {
                   </div>
                   <div className="text-xs text-gray-500 mb-3 space-y-1">
                     <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
-                    <p>Prix : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
+                    <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}</p>
+                    <p>Prix total : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
                     <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>
                       {formatCurrency(s.acompte_verse)} / {formatCurrency(s.acompte_requis)}
                     </span></p>

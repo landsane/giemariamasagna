@@ -55,6 +55,7 @@ export interface SouscriptionLogement {
   type_villa: TypeBien;
   site: SiteLogement;
   titre: TitreLogement;
+  nb_terrains: number; // nombre de parcelles groupées dans ce dossier (Terrain TF) ; 1 pour une villa F2/F3
   prix_total: number; // F2 = 16 000 000, F3 = 20 000 000
   acompte_requis: number; // 8 % du prix
   acompte_verse: number;
