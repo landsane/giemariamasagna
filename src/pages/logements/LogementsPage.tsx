@@ -15,8 +15,8 @@ import ImportModal from '@/components/ImportModal';
 
 // ─── Carte offre active ───────────────────────────────────────────────────────
 function OffreActiveCard({ offre }: { offre: Offre }) {
-  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
-  const acompte    = Math.round(offre.prix_unitaire * offre.taux_acompte);
+  const acompte    = calculerAcompte(offre.prix_unitaire, offre.taux_acompte);
+  const mensualite = calculerMensualite(offre.prix_unitaire, offre.taux_acompte, offre.nb_mensualites);
   const isTerrainTF = offre.type === 'terrain_tf';
   const color = isTerrainTF
     ? { bg: 'bg-green-50 border-green-100', text: 'text-green-900', sub: 'text-green-600' }
@@ -65,7 +65,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'green' : statut === 'attribue' ? 'blue' : statut === 'valide' ? 'purple' : 'amber';

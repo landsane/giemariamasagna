@@ -3,7 +3,7 @@ import { MapPin, Tag } from 'lucide-react';
 import type { Membre, Offre, SiteLogement } from '@/types';
 import { TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -28,11 +28,14 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
   const offre    = offres.find(o => o.id === offreId);
   const prixTotal = offre ? nbTerrains * offre.prix_unitaire : 0;
 
-  const acompte    = Math.round(prixTotal * TAUX_ACOMPTE);
+  // Le terrain simple n'a pas d'acompte (uniquement des mensualités fixes) ;
+  // le terrain TF applique le taux d'acompte de l'offre (déduit avant mensualisation).
+  const tauxAcompteTF = offre?.taux_acompte ?? TAUX_ACOMPTE;
+  const acompte    = bien === 'tf' ? calculerAcompte(prixTotal, tauxAcompteTF) : 0;
   const mensualite = prixTotal > 0
     ? bien === 'simple' && offre && offre.nb_mensualites > 0
       ? Math.round(prixTotal / offre.nb_mensualites)
-      : Math.round(prixTotal / NB_MENSUALITES)
+      : calculerMensualite(prixTotal, tauxAcompteTF, offre?.nb_mensualites ?? NB_MENSUALITES)
     : 0;
 
   function siteFromOffre(o: Offre): SiteLogement {
@@ -137,8 +140,8 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
               </p>
               <div className="space-y-2">
                 {offres.map(o => {
-                  const mens = Math.round(o.prix_unitaire / o.nb_mensualites);
-                  const acc  = Math.round(o.prix_unitaire * o.taux_acompte);
+                  const acc  = calculerAcompte(o.prix_unitaire, o.taux_acompte);
+                  const mens = calculerMensualite(o.prix_unitaire, o.taux_acompte, o.nb_mensualites);
                   const isSelected = (offreId || offres[0]?.id) === o.id;
                   return (
                     <button key={o.id} onClick={() => setOffreId(o.id)}

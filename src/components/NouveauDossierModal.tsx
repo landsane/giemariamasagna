@@ -3,7 +3,7 @@ import { MapPin, Tag } from 'lucide-react';
 import type { Membre, TypeBien, SiteLogement, Offre } from '@/types';
 import { PRIX_F2, PRIX_F3, TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -51,8 +51,8 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
   const prixTotal       = prixUnitaire * (isTerrainContext ? 1 : nbLogements);
   const tauxAcompte     = selectedOffre?.taux_acompte ?? TAUX_ACOMPTE;
   const nbMensualites   = selectedOffre?.nb_mensualites ?? NB_MENSUALITES;
-  const acompte         = Math.round(prixUnitaire * tauxAcompte);
-  const mensualite      = prixUnitaire > 0 ? Math.round(prixUnitaire / nbMensualites) : 0;
+  const acompte         = calculerAcompte(prixUnitaire, tauxAcompte);
+  const mensualite      = prixUnitaire > 0 ? calculerMensualite(prixUnitaire, tauxAcompte, nbMensualites) : 0;
 
   function handleTypeChange(t: Exclude<TypeBien, 'terrain'>) {
     setType(t);
@@ -133,8 +133,8 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
               </p>
               <div className="space-y-2">
                 {offresForType.map(o => {
-                  const mens = Math.round(o.prix_unitaire / o.nb_mensualites);
-                  const acc  = Math.round(o.prix_unitaire * o.taux_acompte);
+                  const acc  = calculerAcompte(o.prix_unitaire, o.taux_acompte);
+                  const mens = calculerMensualite(o.prix_unitaire, o.taux_acompte, o.nb_mensualites);
                   const isSelected = (offreId || offresForType[0]?.id) === o.id;
                   return (
                     <button key={o.id} onClick={() => setOffreId(o.id)}

@@ -5,7 +5,7 @@ import type { Offre, TypeOffre } from '@/types';
 import { LABELS_TYPE_OFFRE } from '@/types';
 import Badge from '@/components/Badge';
 import Spinner from '@/components/Spinner';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
 
 // ─── Formulaire offre ─────────────────────────────────────────────────────────
 interface FormulaireProps {
@@ -49,8 +49,8 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
   const fraisDossier  = parseInt(fraisInput.replace(/\s/g, ''), 10) || 0;
   const tauxAcompte   = (parseFloat(tauxInput) || 0) / 100;
   const nbMensualites = parseInt(nbMensInput, 10) || 1;
-  const acompte       = Math.round(prixUnitaire * tauxAcompte);
-  const mensualite    = prixUnitaire > 0 ? Math.round(prixUnitaire / nbMensualites) : 0;
+  const acompte       = calculerAcompte(prixUnitaire, tauxAcompte);
+  const mensualite    = prixUnitaire > 0 ? calculerMensualite(prixUnitaire, tauxAcompte, nbMensualites) : 0;
 
   async function handleSubmit() {
     if (!nom.trim())         return setError('Le nom est obligatoire.');
@@ -249,8 +249,8 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
 
 // ─── Carte offre ──────────────────────────────────────────────────────────────
 function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => void; onEdit: () => void }) {
-  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
-  const acompte    = Math.round(offre.prix_unitaire * offre.taux_acompte);
+  const acompte    = calculerAcompte(offre.prix_unitaire, offre.taux_acompte);
+  const mensualite = calculerMensualite(offre.prix_unitaire, offre.taux_acompte, offre.nb_mensualites);
 
   const typeColor =
     offre.type === 'terrain_simple' ? 'text-blue-700 bg-blue-50 border-blue-100' :

@@ -19,11 +19,11 @@ import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModa
 import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
 function OffreSimpleCard({ offre }: { offre: Offre }) {
-  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
+  const mensualite = calculerMensualite(offre.prix_unitaire, offre.taux_acompte, offre.nb_mensualites);
   return (
     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
@@ -61,8 +61,8 @@ function OffreSimpleCard({ offre }: { offre: Offre }) {
 
 // ─── Carte offre active (terrain TF) ─────────────────────────────────────────
 function OffreTFCard({ offre }: { offre: Offre }) {
-  const acompte    = Math.round(offre.prix_unitaire * offre.taux_acompte);
-  const mensualite = Math.round(offre.prix_unitaire / offre.nb_mensualites);
+  const acompte    = calculerAcompte(offre.prix_unitaire, offre.taux_acompte);
+  const mensualite = calculerMensualite(offre.prix_unitaire, offre.taux_acompte, offre.nb_mensualites);
   return (
     <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
