@@ -6,6 +6,7 @@ import type {
   PaiementTerrain,
   SouscriptionLogement,
   PaiementLogement,
+  Parcelle,
 } from '@/types';
 
 // ─── Offres ──────────────────────────────────────────────────────────────────
@@ -53,7 +54,9 @@ export async function updateOffre(id: string, data: Partial<Omit<Offre, 'id' | '
 // ─── Membres ─────────────────────────────────────────────────────────────────
 export async function fetchMembres(): Promise<Membre[]> {
   const [{ data: membresDB }, { data: stDB }, { data: slDB }] = await Promise.all([
-    supabase.from('membres').select('*').order('id_membre'),
+    // id_membre est désormais un code aléatoire (plus un compteur séquentiel) :
+    // on trie par date d'inscription pour garder un ordre de liste sensé.
+    supabase.from('membres').select('*').order('created_at'),
     supabase.from('souscriptions_terrains').select('membre_id'),
     supabase.from('souscriptions_logements').select('membre_id'),
   ]);
@@ -320,4 +323,36 @@ export async function deletePaiementLogement(id: string, souscriptionId: string)
   const { error } = await supabase.from('paiements_logements').delete().eq('id', id);
   if (error) throw error;
   await recalculerSouscriptionLogement(souscriptionId);
+}
+
+// ─── Parcelles ─────────────────────────────────────────────────────────────────
+// Une ligne par terrain physique (générée en base à la création du dossier,
+// via trigger — voir migration). numero_parcelle est vide tant que la
+// parcelle n'est pas attribuée à son propriétaire.
+export async function fetchParcellesTerrain(souscriptionId: string): Promise<Parcelle[]> {
+  const { data, error } = await supabase
+    .from('parcelles')
+    .select('*')
+    .eq('souscription_terrain_id', souscriptionId)
+    .order('numero');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchParcellesLogement(souscriptionId: string): Promise<Parcelle[]> {
+  const { data, error } = await supabase
+    .from('parcelles')
+    .select('*')
+    .eq('souscription_logement_id', souscriptionId)
+    .order('numero');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateNumeroParcelle(id: string, numeroParcelle: string) {
+  const { error } = await supabase
+    .from('parcelles')
+    .update({ numero_parcelle: numeroParcelle || null })
+    .eq('id', id);
+  if (error) throw error;
 }

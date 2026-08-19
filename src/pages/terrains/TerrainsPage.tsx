@@ -19,6 +19,7 @@ import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModa
 import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
+import ParcellesEditor from '@/components/ParcellesEditor';
 import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, formatSurface, infosMembre } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
@@ -175,6 +176,10 @@ function DetailSouscription({
           </div>
         </div>
 
+        <div className="p-6 border-b border-gray-50">
+          <ParcellesEditor souscriptionTerrainId={souscription.id} />
+        </div>
+
         <div className="p-6 flex-1">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
             Historique des versements ({paiements?.length ?? '…'})
@@ -320,6 +325,10 @@ function DetailTerrainTF({
           </div>
           <ProgressBar value={totalPct} />
           <p className="text-xs text-gray-400">{formatCurrency(totalVerse)} sur {formatCurrency(souscription.prix_total)}</p>
+        </div>
+
+        <div className="p-6 border-b border-gray-50">
+          <ParcellesEditor souscriptionLogementId={souscription.id} />
         </div>
 
         <div className="p-6 flex-1">

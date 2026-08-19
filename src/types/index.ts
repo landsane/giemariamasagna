@@ -1,7 +1,7 @@
 // ─── Membres ────────────────────────────────────────────────────────────────
 export interface Membre {
   id: string;
-  id_membre: string; // SN001, SN002, … — généré côté base, jamais saisi ni affiché
+  id_membre: string; // code à 4 caractères (ex : A3F9), généré côté base, affiché sur la fiche du membre
   nom: string;
   prenom: string;
   telephone?: string;
@@ -76,6 +76,18 @@ export interface PaiementLogement {
   montant: number;
   mode_paiement: ModePayment;
   reference?: string;
+}
+
+// ─── Parcelles ────────────────────────────────────────────────────────────────
+// Une ligne par terrain physique d'un dossier (terrain simple ou terrain TF),
+// pour préparer la future attribution nominative aux membres.
+export interface Parcelle {
+  id: string;
+  souscription_terrain_id?: string;
+  souscription_logement_id?: string;
+  numero: number; // position dans le dossier : 1, 2, 3…
+  numero_parcelle?: string; // numéro réel de la parcelle, vide tant qu'elle n'est pas attribuée
+  created_at: string;
 }
 
 // ─── Offres ───────────────────────────────────────────────────────────────────
