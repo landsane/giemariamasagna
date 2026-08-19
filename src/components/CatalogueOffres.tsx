@@ -474,7 +474,7 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
                   {sections.length > 1 && (
                     <p className={`text-xs font-bold uppercase tracking-wide mb-3 ${s.color}`}>{s.label}</p>
                   )}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {parType[s.type].map(o => (
                       <OffreCard key={o.id} offre={o}
                         onToggle={() => handleToggle(o)}
@@ -485,7 +485,7 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
                 </div>
               ))
             : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {affichees.map(o => (
                     <OffreCard key={o.id} offre={o}
                       onToggle={() => handleToggle(o)}

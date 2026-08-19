@@ -549,6 +549,55 @@ export default function TerrainsPage() {
         </div>
       </div>
 
+      {/* ── Section Terrains TF ── */}
+      {filtreCategorie !== 'simple' && (
+      <div className="space-y-4">
+        {filtreCategorie === 'tous' && (
+          <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains TF</p>
+        )}
+        {ltf ? <Spinner /> : filteredTF.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-emerald-100 p-10 text-center">
+            <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredTF.map(s => {
+              const m = (membres ?? []).find(mb => mb.id === s.membre_id);
+              const o = (toutesOffres ?? []).find(of => of.id === s.offre_id);
+              const tv  = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
+              const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
+              return (
+                <div key={s.id}
+                  className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
+                  onClick={() => setSelectedTF(s)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{m?.prenom} {m?.nom}</p>
+                      <p className="text-xs text-gray-400">{infosMembre(m) || '—'}</p>
+                    </div>
+                    <Badge variant="green">Terrain TF</Badge>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3 space-y-1">
+                    <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
+                    <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}{o?.surface_m2 ? ` (${formatSurface(o.surface_m2)})` : ''}</p>
+                    <p>Prix total : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
+                    <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>
+                      {formatCurrency(s.acompte_verse)} / {formatCurrency(s.acompte_requis)}
+                    </span></p>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                    <span>Avancement</span><span>{pct}%</span>
+                  </div>
+                  <ProgressBar value={pct} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      )}
+
       {/* ── Section Terrains Simples ── */}
       {filtreCategorie !== 'tf' && (
       <div className="space-y-4">
@@ -635,55 +684,6 @@ export default function TerrainsPage() {
           </div>
 
         </div>
-      </div>
-      )}
-
-      {/* ── Section Terrains TF ── */}
-      {filtreCategorie !== 'simple' && (
-      <div className="space-y-4">
-        {filtreCategorie === 'tous' && (
-          <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains TF</p>
-        )}
-        {ltf ? <Spinner /> : filteredTF.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-emerald-100 p-10 text-center">
-            <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTF.map(s => {
-              const m = (membres ?? []).find(mb => mb.id === s.membre_id);
-              const o = (toutesOffres ?? []).find(of => of.id === s.offre_id);
-              const tv  = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
-              const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
-              return (
-                <div key={s.id}
-                  className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
-                  onClick={() => setSelectedTF(s)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">{m?.prenom} {m?.nom}</p>
-                      <p className="text-xs text-gray-400">{infosMembre(m) || '—'}</p>
-                    </div>
-                    <Badge variant="green">Terrain TF</Badge>
-                  </div>
-                  <div className="text-xs text-gray-500 mb-3 space-y-1">
-                    <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
-                    <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}{o?.surface_m2 ? ` (${formatSurface(o.surface_m2)})` : ''}</p>
-                    <p>Prix total : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
-                    <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>
-                      {formatCurrency(s.acompte_verse)} / {formatCurrency(s.acompte_requis)}
-                    </span></p>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mb-1">
-                    <span>Avancement</span><span>{pct}%</span>
-                  </div>
-                  <ProgressBar value={pct} />
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
       )}
       </div>
