@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { MapPin, Tag } from 'lucide-react';
-import type { Membre, TypeBien, SiteLogement, Offre } from '@/types';
+import type { Membre, TypeBien, Offre } from '@/types';
 import { PRIX_F2, PRIX_F3, TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -17,13 +17,6 @@ const TYPES: { id: Exclude<TypeBien, 'terrain'>; label: string; description: str
   { id: 'F2', label: 'Villa F2', description: '2 pièces',  color: 'border-blue-400 bg-blue-50',   activeColor: 'border-blue-400 bg-blue-50'   },
   { id: 'F3', label: 'Villa F3', description: '3 pièces',  color: 'border-purple-400 bg-purple-50', activeColor: 'border-purple-400 bg-purple-50' },
 ];
-
-function siteFromOffre(o: Offre): SiteLogement {
-  const loc = o.localisation.toLowerCase();
-  return loc.includes('keur') || loc.includes('moussa') || loc.includes('diender')
-    ? 'keur_moussa'
-    : 'ndoyenne';
-}
 
 export default function NouveauDossierModal({ membres, offres, initialType, onClose, onCreated }: Props) {
   const isTerrainContext = initialType === 'terrain';

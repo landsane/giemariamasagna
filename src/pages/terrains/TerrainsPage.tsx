@@ -19,7 +19,7 @@ import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModa
 import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
 function OffreSimpleCard({ offre }: { offre: Offre }) {
@@ -226,15 +226,18 @@ function DetailSouscription({
 function DetailTerrainTF({
   souscription,
   membres,
+  offres,
   onClose,
   onPaiementAdded,
 }: {
   souscription: SouscriptionLogement;
   membres: Membre[];
+  offres: Offre[];
   onClose: () => void;
   onPaiementAdded: () => void;
 }) {
   const membre = membres.find(m => m.id === souscription.membre_id);
+  const offre  = offres.find(o => o.id === souscription.offre_id);
   const { data: paiements, loading, refetch } = useAsync(
     () => fetchPaiementsLogementBySouscription(souscription.id),
     [souscription.id]
@@ -265,7 +268,7 @@ function DetailTerrainTF({
 
         <div className="p-6 border-b border-gray-50 space-y-4">
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{LABELS_SITE[souscription.site]}</p></div>
+            <div><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{localisationSouscription(offre, souscription.site, LABELS_SITE)}</p></div>
             <div><p className="text-gray-400">Prix total</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.prix_total)}</p></div>
             <div><p className="text-gray-400">Mensualité</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.mensualite)}/mois</p></div>
             <div><p className="text-gray-400">Date</p><p className="font-semibold text-gray-900">{formatDate(souscription.date_souscription)}</p></div>
@@ -273,7 +276,9 @@ function DetailTerrainTF({
         </div>
 
         <div className="p-6 border-b border-gray-50 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Acompte (8%)</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Acompte ({pourcentageAcompte(souscription.acompte_requis, souscription.prix_total)}%)
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-xl p-3">
               <p className="text-xs text-gray-400">Requis</p>
@@ -672,6 +677,7 @@ export default function TerrainsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTF.map(s => {
               const m = (membres ?? []).find(mb => mb.id === s.membre_id);
+              const o = (toutesOffres ?? []).find(of => of.id === s.offre_id);
               const tv  = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
               const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
               return (
@@ -687,7 +693,7 @@ export default function TerrainsPage() {
                     <Badge variant="green">Terrain TF</Badge>
                   </div>
                   <div className="text-xs text-gray-500 mb-3 space-y-1">
-                    <p>{LABELS_SITE[s.site]} · {s.titre}</p>
+                    <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
                     <p>Prix : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
                     <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>
                       {formatCurrency(s.acompte_verse)} / {formatCurrency(s.acompte_requis)}
@@ -718,6 +724,7 @@ export default function TerrainsPage() {
         <DetailTerrainTF
           souscription={selectedTF}
           membres={membres ?? []}
+          offres={toutesOffres ?? []}
           onClose={() => setSelectedTF(null)}
           onPaiementAdded={refetchAll}
         />

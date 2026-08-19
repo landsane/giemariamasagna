@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { MoreVertical, Pencil, Archive, ArchiveRestore, Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, fetchOffres, updateMembre } from '@/lib/queries';
-import type { Membre, SouscriptionTerrain, SouscriptionLogement } from '@/types';
+import type { Membre, SouscriptionTerrain, SouscriptionLogement, Offre } from '@/types';
 import { LABELS_SITE } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
@@ -10,7 +10,7 @@ import Spinner from '@/components/Spinner';
 import MembreFormModal from '@/components/MembreFormModal';
 import ImportModal from '@/components/ImportModal';
 import MembreDetailModal from '@/components/MembreDetailModal';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, localisationSouscription } from '@/lib/utils';
 
 type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux';
 
@@ -57,18 +57,19 @@ function BlocTerrain({ s }: { s: SouscriptionTerrain }) {
 }
 
 // ─── Bloc logement / terrain TF ───────────────────────────────────────────────
-function BlocLogement({ s }: { s: SouscriptionLogement }) {
+function BlocLogement({ s, offre }: { s: SouscriptionLogement; offre?: Offre }) {
   const isTerrainTF  = s.type_villa === 'terrain';
   const acomptePct   = s.acompte_requis > 0 ? Math.round((s.acompte_verse / s.acompte_requis) * 100) : 0;
   const totalVerse   = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
   const totalPct     = s.prix_total > 0 ? Math.round((totalVerse / s.prix_total) * 100) : 0;
+  const localisation = localisationSouscription(offre, s.site, LABELS_SITE).split('–')[0].trim();
 
   const bgClass  = isTerrainTF ? 'bg-green-50/60 border-green-100'   : s.type_villa === 'F3' ? 'bg-purple-50/60 border-purple-100' : 'bg-indigo-50/60 border-indigo-100';
   const dotClass = isTerrainTF ? 'bg-green-500'                       : s.type_villa === 'F3' ? 'bg-purple-500'                    : 'bg-indigo-500';
   const textCls  = isTerrainTF ? 'text-green-800'                     : s.type_villa === 'F3' ? 'text-purple-800'                  : 'text-indigo-800';
   const titre    = isTerrainTF
-    ? `Terrain TF · ${LABELS_SITE[s.site].split('–')[0].trim()}`
-    : `Villa ${s.type_villa} · ${LABELS_SITE[s.site].split('–')[0].trim()} · ${s.titre}`;
+    ? `Terrain TF · ${localisation}`
+    : `Villa ${s.type_villa} · ${localisation} · ${s.titre}`;
 
   const sv = s.statut === 'livre' ? 'green' : s.statut === 'attribue' ? 'blue' : s.statut === 'valide' ? 'purple' : 'amber';
   const sl = s.statut === 'livre' ? 'Livré' : s.statut === 'attribue' ? 'Attribué' : s.statut === 'valide' ? 'Validé' : 'En cours';
@@ -100,6 +101,7 @@ function MembreCard({
   membre,
   souscTerrains,
   souscLogements,
+  offres,
   onEdit,
   onToggleArchive,
   onOpenDetail,
@@ -107,6 +109,7 @@ function MembreCard({
   membre: Membre;
   souscTerrains: SouscriptionTerrain[];
   souscLogements: SouscriptionLogement[];
+  offres: Offre[];
   onEdit: (m: Membre) => void;
   onToggleArchive: (m: Membre) => void;
   onOpenDetail: (m: Membre) => void;
@@ -181,7 +184,7 @@ function MembreCard({
       ) : (
         <div className="space-y-2">
           {terrains.map(s => <BlocTerrain key={s.id} s={s} />)}
-          {logements.map(s => <BlocLogement key={s.id} s={s} />)}
+          {logements.map(s => <BlocLogement key={s.id} s={s} offre={offres.find(o => o.id === s.offre_id)} />)}
         </div>
       )}
     </div>
@@ -354,6 +357,7 @@ export default function MembresPage() {
           {filtered.map(m => (
             <MembreCard key={m.id} membre={m}
               souscTerrains={terrains ?? []} souscLogements={logements ?? []}
+              offres={offres ?? []}
               onEdit={setEditing}
               onToggleArchive={handleToggleArchive}
               onOpenDetail={setDetailMembre}

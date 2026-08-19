@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { MapPin, Tag } from 'lucide-react';
-import type { Membre, Offre, SiteLogement } from '@/types';
+import type { Membre, Offre } from '@/types';
 import { TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -37,13 +37,6 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
       ? Math.round(prixTotal / offre.nb_mensualites)
       : calculerMensualite(prixTotal, tauxAcompteTF, offre?.nb_mensualites ?? NB_MENSUALITES)
     : 0;
-
-  function siteFromOffre(o: Offre): SiteLogement {
-    const loc = o.localisation.toLowerCase();
-    return loc.includes('keur') || loc.includes('moussa') || loc.includes('diender')
-      ? 'keur_moussa'
-      : 'ndoyenne';
-  }
 
   function switchBien(b: Bien) {
     setBien(b);

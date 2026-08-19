@@ -65,7 +65,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'green' : statut === 'attribue' ? 'blue' : statut === 'valide' ? 'purple' : 'amber';
@@ -84,15 +84,18 @@ function typeBadge(type: TypeBien) {
 function DetailLogement({
   souscription,
   membres,
+  offres,
   onClose,
   onPaiementAdded,
 }: {
   souscription: SouscriptionLogement;
   membres: Membre[];
+  offres: Offre[];
   onClose: () => void;
   onPaiementAdded: () => void;
 }) {
   const membre = membres.find(m => m.id === souscription.membre_id);
+  const offre  = offres.find(o => o.id === souscription.offre_id);
   const { data: paiements, loading, refetch } = useAsync(
     () => fetchPaiementsLogementBySouscription(souscription.id),
     [souscription.id]
@@ -126,7 +129,7 @@ function DetailLogement({
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div><p className="text-gray-400">Type</p><p className="font-semibold text-gray-900">{LABELS_TYPE_BIEN[souscription.type_villa]}</p></div>
             <div><p className="text-gray-400">Titre</p><p className="font-semibold text-gray-900">{souscription.titre}</p></div>
-            <div className="col-span-2"><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{LABELS_SITE[souscription.site]}</p></div>
+            <div className="col-span-2"><p className="text-gray-400">Site</p><p className="font-semibold text-gray-900">{localisationSouscription(offre, souscription.site, LABELS_SITE)}</p></div>
             <div><p className="text-gray-400">Prix total</p><p className="font-semibold text-gray-900">{formatCurrency(souscription.prix_total)}</p></div>
             <div>
               <p className="text-gray-400">{isTerrainTF ? 'Mensualité' : 'Mensualité'}</p>
@@ -141,7 +144,9 @@ function DetailLogement({
 
         {/* Acompte */}
         <div className="p-6 border-b border-gray-50 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Acompte (8%)</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Acompte ({pourcentageAcompte(souscription.acompte_requis, souscription.prix_total)}%)
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-xl p-3">
               <p className="text-xs text-gray-400">Requis</p>
@@ -237,8 +242,9 @@ function DetailLogement({
 }
 
 // ─── Carte dossier ────────────────────────────────────────────────────────────
-function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membres: Membre[]; onSelect: (s: SouscriptionLogement) => void }) {
+function DossierCard({ s, membres, offres, onSelect }: { s: SouscriptionLogement; membres: Membre[]; offres: Offre[]; onSelect: (s: SouscriptionLogement) => void }) {
   const membre     = membres.find(m => m.id === s.membre_id);
+  const offre      = offres.find(o => o.id === s.offre_id);
   const acomptePct = s.acompte_requis > 0 ? Math.round((s.acompte_verse / s.acompte_requis) * 100) : 0;
   const totalVerse = s.acompte_verse + s.nb_mensualites_payees * s.mensualite;
   const totalPct   = s.prix_total > 0 ? Math.round((totalVerse / s.prix_total) * 100) : 0;
@@ -258,7 +264,7 @@ function DossierCard({ s, membres, onSelect }: { s: SouscriptionLogement; membre
       <div className="flex gap-1.5 mb-3 flex-wrap">
         {typeBadge(s.type_villa)}
         <Badge variant="gray">{s.titre}</Badge>
-        <Badge variant="gray">{s.site === 'ndoyenne' ? 'Sébikhotane' : 'Diender'}</Badge>
+        <Badge variant="gray">{localisationSouscription(offre, s.site, LABELS_SITE)}</Badge>
       </div>
       <div className="space-y-1.5 text-xs text-gray-600 mb-3">
         <div className="flex justify-between">
@@ -454,7 +460,7 @@ export default function LogementsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(s => (
-            <DossierCard key={s.id} s={s} membres={membres ?? []} onSelect={setSelected} />
+            <DossierCard key={s.id} s={s} membres={membres ?? []} offres={toutesOffres ?? []} onSelect={setSelected} />
           ))}
         </div>
       )}
@@ -468,6 +474,7 @@ export default function LogementsPage() {
         <DetailLogement
           souscription={selected}
           membres={membres ?? []}
+          offres={toutesOffres ?? []}
           onClose={() => setSelected(null)}
           onPaiementAdded={refetchAll}
         />
