@@ -307,13 +307,11 @@ export default function MembreDetailModal({ membre, souscTerrains, souscLogement
 
         <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
-              <span className="text-[10px] font-mono text-gray-400 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                {membre.id_membre}
-              </span>
-            </div>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
+            <span className="inline-block mt-1 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md">
+              {membre.id_membre}
+            </span>
+            <p className="text-xs font-medium text-gray-500 mt-1">
               {infosMembre(membre) || 'Aucune information de contact'}
             </p>
           </div>
