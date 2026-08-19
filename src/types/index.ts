@@ -1,7 +1,7 @@
 // ─── Membres ────────────────────────────────────────────────────────────────
 export interface Membre {
   id: string;
-  id_membre: string; // code à 4 caractères (ex : A3F9), généré côté base, affiché sur la fiche du membre
+  id_membre: string; // code PIN à 4 chiffres (ex : 0427), généré côté base, affiché sur la fiche du membre
   nom: string;
   prenom: string;
   telephone?: string;
