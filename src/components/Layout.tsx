@@ -35,8 +35,8 @@ export default function Layout() {
 
       {/* ── Sidebar (tablette large / ordinateur) ── */}
       <aside
-        className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-64 md:z-30 border-r border-emerald-900"
-        style={{ background: '#064E3B' }}
+        className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-64 md:z-30 border-r border-emerald-950/60"
+        style={{ background: 'linear-gradient(180deg, #075E46 0%, #053B2C 55%, #032A20 100%)' }}
       >
         <div className="flex items-center gap-2.5 h-16 px-5 border-b border-white/10 flex-shrink-0">
           <Logo />
@@ -51,12 +51,28 @@ export default function Layout() {
               key={to}
               to={to}
               className={({ isActive }) => cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                isActive ? 'bg-white/10 text-emerald-300' : 'text-emerald-100/60 hover:text-emerald-100 hover:bg-white/5'
+                'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium',
+                'transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60',
+                isActive ? 'bg-white/[0.08] text-white' : 'text-emerald-100/55 hover:text-emerald-50 hover:bg-white/5'
               )}
             >
-              <Icon className="w-[18px] h-[18px] flex-shrink-0" />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={cn(
+                      'absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-full bg-amber-400',
+                      'transition-all duration-200 origin-center',
+                      isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0'
+                    )}
+                  />
+                  <Icon className={cn(
+                    'w-[18px] h-[18px] flex-shrink-0 transition-transform duration-200',
+                    isActive ? 'text-amber-300' : 'text-current group-hover:scale-110'
+                  )} />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -66,7 +82,7 @@ export default function Layout() {
       <div className="flex flex-col flex-1 min-w-0 md:ml-64">
 
         {/* ── Header (mobile / petite tablette uniquement) ── */}
-        <header className="sticky top-0 z-30 md:hidden" style={{ background: '#064E3B' }}>
+        <header className="sticky top-0 z-30 md:hidden shadow-sm" style={{ background: 'linear-gradient(135deg, #075E46 0%, #053B2C 100%)' }}>
           <div className="flex items-center justify-between h-14 px-4 max-w-7xl mx-auto">
             <div className="flex items-center gap-2.5">
               <Logo />
@@ -88,25 +104,27 @@ export default function Layout() {
 
         {/* ── Barre de navigation bas (mobile uniquement) ── */}
         <nav
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t border-emerald-900"
-          style={{ background: '#064E3B', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t border-emerald-950/60 shadow-[0_-4px_16px_rgba(0,0,0,0.15)]"
+          style={{ background: 'linear-gradient(180deg, #075E46 0%, #053B2C 100%)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           {NAV.map(({ to, icon: Icon, short }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) => cn(
-                'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] transition-colors relative',
-                isActive ? 'text-emerald-300' : 'text-emerald-100/40 hover:text-emerald-100/70'
+                'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] relative',
+                'transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400/60',
+                isActive ? 'text-amber-300' : 'text-emerald-100/40 hover:text-emerald-100/70'
               )}
             >
               {({ isActive }) => (
                 <>
-                  <Icon className={cn('w-5 h-5 transition-transform', isActive && 'scale-110')} />
-                  <span className={cn('text-[10px] font-medium leading-none', isActive ? 'text-emerald-300' : 'text-emerald-100/40')}>
+                  <Icon className={cn('w-5 h-5 transition-transform duration-200', isActive && 'scale-110')} />
+                  <span className={cn('text-[10px] font-medium leading-none transition-colors duration-200', isActive ? 'text-amber-300' : 'text-emerald-100/40')}>
                     {short}
                   </span>
-                  {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-400 rounded-full" />}
+                  {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-amber-400 rounded-full animate-fade-in-up" />}
                 </>
               )}
             </NavLink>
