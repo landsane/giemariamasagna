@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { MapPin, Tag, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
 import {
   fetchMembres,
@@ -10,62 +10,14 @@ import {
 } from '@/lib/queries';
 import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre, TypePaiementLogement } from '@/types';
 import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
-import VersementLogementModal from '@/components/VersementLogementModal';
-import ImportModal from '@/components/ImportModal';
-
-// ─── Carte offre active ───────────────────────────────────────────────────────
-function OffreActiveCard({ offre }: { offre: Offre }) {
-  const acompte    = calculerAcompte(offre.prix_unitaire, offre.taux_acompte);
-  const mensualite = calculerMensualite(offre.prix_unitaire, offre.taux_acompte, offre.nb_mensualites);
-  const isTerrainTF = offre.type === 'terrain_tf';
-  const color = isTerrainTF
-    ? { bg: 'bg-green-50 border-green-100', text: 'text-green-900', sub: 'text-green-600' }
-    : offre.sous_type === 'F3'
-      ? { bg: 'bg-purple-50 border-purple-100', text: 'text-purple-900', sub: 'text-purple-600' }
-      : { bg: 'bg-indigo-50 border-indigo-100', text: 'text-indigo-900', sub: 'text-indigo-600' };
-
-  return (
-    <div className={`border rounded-xl p-4 flex flex-col gap-2 ${color.bg}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className={`text-sm font-bold ${color.text}`}>{titreAvecSurface(offre.nom, offre.surface_m2)}</p>
-          <p className={`text-xs flex items-center gap-1 mt-0.5 ${color.sub}`}>
-            <MapPin className="w-3 h-3" />{offre.localisation}
-          </p>
-        </div>
-        <Tag className="w-4 h-4 text-gray-300 flex-shrink-0 mt-0.5" />
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <div className="bg-white rounded-lg p-2 text-center">
-          <p className="text-gray-400">Prix</p>
-          <p className="font-bold text-gray-900">{formatCurrency(offre.prix_unitaire)}</p>
-        </div>
-        {acompte > 0 && (
-          <div className="bg-white rounded-lg p-2 text-center">
-            <p className="text-gray-400">Acompte {Math.round(offre.taux_acompte * 100)}%</p>
-            <p className="font-bold text-amber-700">{formatCurrency(acompte)}</p>
-          </div>
-        )}
-        <div className="bg-white rounded-lg p-2 text-center">
-          <p className="text-gray-400">Mensualité</p>
-          <p className="font-bold text-green-700">{formatCurrency(mensualite)}</p>
-        </div>
-        <div className="bg-white rounded-lg p-2 text-center">
-          <p className="text-gray-400">Durée</p>
-          <p className="font-bold text-blue-700">{offre.nb_mensualites} mois</p>
-        </div>
-      </div>
-      {offre.frais_dossier > 0 && (
-        <p className="text-xs text-gray-400">Frais de dossier : {formatCurrency(offre.frais_dossier)}</p>
-      )}
-    </div>
-  );
-}
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, infosMembre } from '@/lib/utils';
+import VersementLogementModal from '@/components/VersementLogementModal';
+import ImportModal from '@/components/ImportModal';
+import CatalogueOffres from '@/components/CatalogueOffres';
+import { formatCurrency, formatDate, localisationSouscription, pourcentageAcompte, infosMembre } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'green' : statut === 'attribue' ? 'blue' : statut === 'valide' ? 'purple' : 'amber';
@@ -292,6 +244,7 @@ type FiltreType = 'tous' | 'F2' | 'F3';
 type FiltreStatut = 'tous' | 'en_cours' | 'valide' | 'attribue';
 
 export default function LogementsPage() {
+  const [tab, setTab]                   = useState<'offres' | 'souscriptions'>('souscriptions');
   const [search, setSearch]             = useState('');
   const [filtreStatut, setFiltreStatut] = useState<FiltreStatut>('tous');
   const [filtreType, setFiltreType]     = useState<FiltreType>('tous');
@@ -302,15 +255,15 @@ export default function LogementsPage() {
   const { data: membres,       loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: souscriptions, loading: ls, refetch: rs } = useAsync(fetchSouscriptionsLogement);
   const { data: paiements,     loading: lp               } = useAsync(fetchPaiementsLogement);
-  const { data: toutesOffres                              } = useAsync(fetchOffres);
+  const { data: toutesOffres,  loading: lo, refetch: ro  } = useAsync(fetchOffres);
 
-  const offresActives = useMemo(
-    () => (toutesOffres ?? []).filter(o => o.type === 'logement' && o.statut === 'active'),
+  const offresLogement = useMemo(
+    () => (toutesOffres ?? []).filter(o => o.type === 'logement'),
     [toutesOffres]
   );
 
   const loading = lm || ls || lp;
-  const refetchAll = () => { rm(); rs(); };
+  const refetchAll = () => { rm(); rs(); ro(); };
 
   const logements = useMemo(
     () => (souscriptions ?? []).filter(s => s.type_villa !== 'terrain'),
@@ -372,6 +325,37 @@ export default function LogementsPage() {
         </button>
       </div>
 
+      {/* Onglets Offres / Souscriptions */}
+      <div className="flex w-full bg-gray-100 rounded-xl p-1">
+        <button
+          onClick={() => setTab('offres')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'offres' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Offres ({offresLogement.length})
+        </button>
+        <button
+          onClick={() => setTab('souscriptions')}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+            tab === 'souscriptions' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Souscriptions ({logements.length})
+        </button>
+      </div>
+
+      {tab === 'offres' && (
+        <CatalogueOffres
+          types={['logement']}
+          offres={toutesOffres ?? []}
+          loading={lo}
+          onChanged={ro}
+        />
+      )}
+
+      {tab === 'souscriptions' && (
+      <div className="space-y-5">
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -392,18 +376,6 @@ export default function LogementsPage() {
           <p className="text-xs text-gray-400 mt-1">{logements.length} dossier{logements.length > 1 ? 's' : ''}</p>
         </div>
       </div>
-
-      {/* Offres actives */}
-      {offresActives.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-            Offres disponibles ({offresActives.length})
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {offresActives.map(o => <OffreActiveCard key={o.id} offre={o} />)}
-          </div>
-        </div>
-      )}
 
       {/* Filtres */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -471,6 +443,8 @@ export default function LogementsPage() {
         {filtered.length} dossier{filtered.length > 1 ? 's' : ''} · Total encaissé :{' '}
         <span className="font-semibold text-green-700">{formatCurrency(totalPaiements)}</span>
       </div>
+      </div>
+      )}
 
       {selected && (
         <DetailLogement

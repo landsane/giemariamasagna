@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { useAsync } from '@/hooks/useAsync';
-import { fetchOffres, insertOffre, updateOffreStatut, updateOffre } from '@/lib/queries';
+import { insertOffre, updateOffre, updateOffreStatut } from '@/lib/queries';
 import type { Offre, TypeOffre } from '@/types';
 import { LABELS_TYPE_OFFRE } from '@/types';
-import Badge from '@/components/Badge';
-import Spinner from '@/components/Spinner';
+import Badge from './Badge';
+import Spinner from './Spinner';
 import { formatCurrency, calculerAcompte, calculerMensualite, formatSurface, titreAvecSurface } from '@/lib/utils';
 
-// ─── Formulaire offre ─────────────────────────────────────────────────────────
-interface FormulaireProps {
-  initial?: Offre;
-  onClose: () => void;
-  onSaved: () => void;
-}
+// Catalogue d'offres réutilisable, scopé à un sous-ensemble de types (Terrains :
+// terrain_simple + terrain_tf ; Logements : logement) — remplace l'ancienne page
+// Offres autonome, qui faisait doublon avec l'aperçu affiché sur Terrains et
+// Logements. `types` détermine ce qui est géré ici, et les libellés/couleurs
+// des sections viennent de SECTIONS ci-dessous.
+
+const SECTIONS: { type: TypeOffre; label: string; color: string; desc: string }[] = [
+  { type: 'terrain_simple', label: 'Terrains Simples',  color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
+  { type: 'terrain_tf',     label: 'Terrains TF',       color: 'text-green-600',  desc: 'Titre Foncier · Le Millénium 7SD' },
+  { type: 'logement',       label: 'Logements Sociaux', color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
+];
 
 const DEFAULTS: Record<TypeOffre, { taux_acompte: number; nb_mensualites: number }> = {
   terrain_simple: { taux_acompte: 0,    nb_mensualites: 12  },
@@ -20,9 +24,23 @@ const DEFAULTS: Record<TypeOffre, { taux_acompte: number; nb_mensualites: number
   logement:       { taux_acompte: 0.08, nb_mensualites: 120 },
 };
 
-function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
+const ALL_TYPES: { id: TypeOffre; label: string; desc: string; color: string }[] = [
+  { id: 'terrain_simple', label: 'Terrain Simple',  desc: 'Parcelle GIE · mensualités fixes',      color: 'border-blue-400 bg-blue-50' },
+  { id: 'terrain_tf',     label: 'Terrain TF',      desc: 'Titre Foncier · acompte + mensualités', color: 'border-green-400 bg-green-50' },
+  { id: 'logement',       label: 'Logement Social', desc: 'Villa F2 / F3 · acompte + 120 mens.',    color: 'border-purple-400 bg-purple-50' },
+];
+
+// ─── Formulaire offre ─────────────────────────────────────────────────────────
+interface FormulaireProps {
+  initial?: Offre;
+  allowedTypes: TypeOffre[];
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: FormulaireProps) {
   const editing = !!initial;
-  const [type,          setType]         = useState<TypeOffre>(initial?.type ?? 'terrain_simple');
+  const [type,          setType]         = useState<TypeOffre>(initial?.type ?? allowedTypes[0]);
   const [sousType,      setSousType]     = useState<'F2' | 'F3' | ''>(initial?.sous_type ?? '');
   const [nom,           setNom]          = useState(initial?.nom ?? '');
   const [description,   setDescription]  = useState(initial?.description ?? '');
@@ -91,11 +109,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
     }
   }
 
-  const TYPES: { id: TypeOffre; label: string; desc: string; color: string }[] = [
-    { id: 'terrain_simple', label: 'Terrain Simple',  desc: 'Parcelle GIE · mensualités fixes',   color: 'border-blue-400 bg-blue-50' },
-    { id: 'logement',       label: 'Logement Social', desc: 'Villa F2 / F3 · acompte + 120 mens.', color: 'border-purple-400 bg-purple-50' },
-    { id: 'terrain_tf',     label: 'Terrain TF',      desc: 'Titre Foncier · acompte + mensualités',color: 'border-green-400 bg-green-50' },
-  ];
+  const TYPES = ALL_TYPES.filter(t => allowedTypes.includes(t.id));
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto" onClick={onClose}>
@@ -109,20 +123,22 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Type */}
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Type d'offre</p>
-            <div className="grid grid-cols-3 gap-2">
-              {TYPES.map(t => (
-                <button key={t.id} onClick={() => handleTypeChange(t.id)}
-                  className={`border-2 rounded-xl p-3 text-left transition-all ${type === t.id ? t.color : 'border-emerald-100 hover:border-gray-200'}`}
-                >
-                  <p className="text-xs font-bold text-gray-900">{t.label}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{t.desc}</p>
-                </button>
-              ))}
+          {/* Type (masqué si un seul type possible dans ce catalogue) */}
+          {TYPES.length > 1 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Type d'offre</p>
+              <div className={`grid gap-2 ${TYPES.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {TYPES.map(t => (
+                  <button key={t.id} onClick={() => handleTypeChange(t.id)}
+                    className={`border-2 rounded-xl p-3 text-left transition-all ${type === t.id ? t.color : 'border-emerald-100 hover:border-gray-200'}`}
+                  >
+                    <p className="text-xs font-bold text-gray-900">{t.label}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{t.desc}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Sous-type logement */}
           {type === 'logement' && (
@@ -313,7 +329,7 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
       )}
 
       {/* Grille financière */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {offre.surface_m2 && (
           <div className="bg-blue-50 rounded-xl p-3">
             <p className="text-[10px] text-gray-400 uppercase tracking-wide">Surface</p>
@@ -351,19 +367,27 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
   );
 }
 
-// ─── Page principale ──────────────────────────────────────────────────────────
-export default function OffresPage() {
+// ─── Catalogue ────────────────────────────────────────────────────────────────
+interface CatalogueProps {
+  types: TypeOffre[];
+  offres: Offre[];
+  loading: boolean;
+  onChanged: () => void;
+}
+
+export default function CatalogueOffres({ types, offres, loading, onChanged }: CatalogueProps) {
   const [showForm, setShowForm]     = useState(false);
   const [editing, setEditing]       = useState<Offre | null>(null);
   const [tab, setTab]               = useState<'active' | 'inactive'>('active');
   const [filtreType, setFiltreType] = useState<TypeOffre | 'tous'>('tous');
 
-  const { data: offres, loading, error, refetch } = useAsync(fetchOffres);
+  const sections = SECTIONS.filter(s => types.includes(s.type));
+  const scoped   = offres.filter(o => types.includes(o.type));
 
   async function handleToggle(offre: Offre) {
     const next = offre.statut === 'active' ? 'inactive' : 'active';
     await updateOffreStatut(offre.id, next);
-    refetch();
+    onChanged();
   }
 
   function switchTab(t: 'active' | 'inactive') {
@@ -371,8 +395,8 @@ export default function OffresPage() {
     setFiltreType('tous');
   }
 
-  const toutesActives   = (offres ?? []).filter(o => o.statut === 'active');
-  const toutesInactives = (offres ?? []).filter(o => o.statut !== 'active');
+  const toutesActives   = scoped.filter(o => o.statut === 'active');
+  const toutesInactives = scoped.filter(o => o.statut !== 'active');
   const base            = tab === 'active' ? toutesActives : toutesInactives;
 
   const parType: Record<TypeOffre, Offre[]> = {
@@ -383,21 +407,26 @@ export default function OffresPage() {
 
   const affichees = filtreType === 'tous' ? base : parType[filtreType];
 
-  const SECTIONS: { type: TypeOffre; label: string; color: string; desc: string }[] = [
-    { type: 'terrain_simple', label: 'Terrains Simples',  color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
-    { type: 'logement',       label: 'Logements Sociaux', color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
-    { type: 'terrain_tf',     label: 'Terrains TF',       color: 'text-green-600',  desc: 'Titre Foncier · Le Millénium 7SD' },
-  ];
-
   return (
     <div className="space-y-5">
-      {/* En-tête */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-black text-gray-900">Offres</h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Catalogue des offres disponibles · {toutesActives.length} active{toutesActives.length > 1 ? 's' : ''}
-          </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex w-full sm:w-auto bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => switchTab('active')}
+            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              tab === 'active' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Actives ({toutesActives.length})
+          </button>
+          <button
+            onClick={() => switchTab('inactive')}
+            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              tab === 'inactive' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Inactives ({toutesInactives.length})
+          </button>
         </div>
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
@@ -407,47 +436,24 @@ export default function OffresPage() {
         </button>
       </div>
 
-      {/* Onglets */}
-      <div className="flex w-full bg-gray-100 rounded-xl p-1">
-        <button
-          onClick={() => switchTab('active')}
-          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-            tab === 'active' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Actives ({toutesActives.length})
-        </button>
-        <button
-          onClick={() => switchTab('inactive')}
-          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-            tab === 'inactive' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Inactives ({toutesInactives.length})
-        </button>
-      </div>
-
-      {/* Résumé par type */}
-      <div className="grid grid-cols-3 gap-3">
-        {SECTIONS.map(s => (
-          <button key={s.type}
-            onClick={() => setFiltreType(filtreType === s.type ? 'tous' : s.type)}
-            className={`bg-white rounded-xl border p-4 text-left transition-all hover:shadow-sm ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
-          >
-            <p className={`text-2xl font-black ${s.color}`}>{parType[s.type].length}</p>
-            <p className="text-xs font-semibold text-gray-700 mt-0.5">{s.label}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">{s.desc}</p>
-          </button>
-        ))}
-      </div>
+      {/* Résumé par type (seulement si le catalogue en couvre plusieurs) */}
+      {sections.length > 1 && (
+        <div className={`grid gap-3 ${sections.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {sections.map(s => (
+            <button key={s.type}
+              onClick={() => setFiltreType(filtreType === s.type ? 'tous' : s.type)}
+              className={`bg-white rounded-xl border p-4 text-left transition-all hover:shadow-sm ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
+            >
+              <p className={`text-2xl font-black ${s.color}`}>{parType[s.type].length}</p>
+              <p className="text-xs font-semibold text-gray-700 mt-0.5">{s.label}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{s.desc}</p>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Liste */}
-      {loading ? <Spinner /> : error ? (
-        <div className="bg-white rounded-2xl border border-emerald-100 p-8 text-center">
-          <p className="text-sm text-red-500">{error}</p>
-          <button onClick={refetch} className="mt-2 text-xs text-green-600 hover:underline">Réessayer</button>
-        </div>
-      ) : affichees.length === 0 ? (
+      {loading ? <Spinner /> : affichees.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <p className="text-sm text-gray-400">
             {tab === 'active' ? 'Aucune offre active' : 'Aucune offre inactive'}
@@ -463,9 +469,11 @@ export default function OffresPage() {
       ) : (
         <div className="space-y-5">
           {filtreType === 'tous'
-            ? SECTIONS.map(s => parType[s.type].length > 0 && (
+            ? sections.map(s => parType[s.type].length > 0 && (
                 <div key={s.type}>
-                  <p className={`text-xs font-bold uppercase tracking-wide mb-3 ${s.color}`}>{s.label}</p>
+                  {sections.length > 1 && (
+                    <p className={`text-xs font-bold uppercase tracking-wide mb-3 ${s.color}`}>{s.label}</p>
+                  )}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     {parType[s.type].map(o => (
                       <OffreCard key={o.id} offre={o}
@@ -493,8 +501,9 @@ export default function OffresPage() {
       {showForm && (
         <FormulaireOffre
           initial={editing ?? undefined}
+          allowedTypes={types}
           onClose={() => { setShowForm(false); setEditing(null); }}
-          onSaved={refetch}
+          onSaved={onChanged}
         />
       )}
     </div>

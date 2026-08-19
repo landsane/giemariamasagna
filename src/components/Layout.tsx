@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Map, Building2, Tag } from 'lucide-react';
+import { LayoutDashboard, Users, Map, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -8,7 +8,6 @@ const NAV = [
   { to: '/membres',   icon: Users,           label: 'Membres',    short: 'Membres'    },
   { to: '/terrains',  icon: Map,             label: 'Terrains',   short: 'Terrains'   },
   { to: '/logements', icon: Building2,       label: 'Logements',  short: 'Logements'  },
-  { to: '/offres',    icon: Tag,             label: 'Offres',     short: 'Offres'     },
 ];
 
 function Logo() {
