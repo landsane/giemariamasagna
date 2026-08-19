@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { MoreVertical, Pencil, Archive, ArchiveRestore, Upload } from 'lucide-react';
 import { useAsync } from '@/hooks/useAsync';
-import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, updateMembre } from '@/lib/queries';
+import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, fetchOffres, updateMembre } from '@/lib/queries';
 import type { Membre, SouscriptionTerrain, SouscriptionLogement } from '@/types';
 import { LABELS_SITE } from '@/types';
 import Badge from '@/components/Badge';
@@ -9,6 +9,7 @@ import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import MembreFormModal from '@/components/MembreFormModal';
 import ImportModal from '@/components/ImportModal';
+import MembreDetailModal from '@/components/MembreDetailModal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux';
@@ -101,12 +102,14 @@ function MembreCard({
   souscLogements,
   onEdit,
   onToggleArchive,
+  onOpenDetail,
 }: {
   membre: Membre;
   souscTerrains: SouscriptionTerrain[];
   souscLogements: SouscriptionLogement[];
   onEdit: (m: Membre) => void;
   onToggleArchive: (m: Membre) => void;
+  onOpenDetail: (m: Membre) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const terrains  = souscTerrains.filter(s => s.membre_id === membre.id);
@@ -114,7 +117,10 @@ function MembreCard({
   const nbOffres  = terrains.length + logements.length;
 
   return (
-    <div className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md ${membre.statut === 'inactif' ? 'opacity-60 border-emerald-100' : 'border-emerald-100'}`}>
+    <div
+      onClick={() => onOpenDetail(membre)}
+      className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md cursor-pointer ${membre.statut === 'inactif' ? 'opacity-60 border-emerald-100' : 'border-emerald-100'}`}
+    >
       <div className="flex items-start gap-3">
         <Avatar membre={membre} size="lg" />
         <div className="flex-1 min-w-0">
@@ -122,7 +128,7 @@ function MembreCard({
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
             </div>
-            <div className="relative flex-shrink-0">
+            <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
               <button
                 onClick={() => setShowMenu(v => !v)}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -190,10 +196,12 @@ export default function MembresPage() {
   const [editing, setEditing] = useState<Membre | null>(null);
   const [showNew,    setShowNew]    = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [detailMembre, setDetailMembre] = useState<Membre | null>(null);
 
   const { data: membres,   loading: lm, refetch: rm } = useAsync(fetchMembres);
   const { data: terrains,  loading: lt, refetch: rt } = useAsync(fetchSouscriptionsTerrain);
   const { data: logements, loading: ll, refetch: rl } = useAsync(fetchSouscriptionsLogement);
+  const { data: offres } = useAsync(fetchOffres);
 
   const loading    = lm || lt || ll;
   const refetchAll = () => { rm(); rt(); rl(); };
@@ -348,6 +356,7 @@ export default function MembresPage() {
               souscTerrains={terrains ?? []} souscLogements={logements ?? []}
               onEdit={setEditing}
               onToggleArchive={handleToggleArchive}
+              onOpenDetail={setDetailMembre}
             />
           ))}
         </div>
@@ -365,6 +374,16 @@ export default function MembresPage() {
       )}
       {showImport && (
         <ImportModal type="membres" onClose={() => setShowImport(false)} onImported={refetchAll} />
+      )}
+      {detailMembre && (
+        <MembreDetailModal
+          membre={(membres ?? []).find(m => m.id === detailMembre.id) ?? detailMembre}
+          souscTerrains={terrains ?? []}
+          souscLogements={logements ?? []}
+          offres={offres ?? []}
+          onClose={() => setDetailMembre(null)}
+          onChanged={refetchAll}
+        />
       )}
     </div>
   );

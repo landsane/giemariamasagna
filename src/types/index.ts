@@ -18,6 +18,7 @@ export type ModePayment = 'wave' | 'orange_money' | 'banque' | 'autres';
 export interface SouscriptionTerrain {
   id: string;
   membre_id: string;
+  offre_id?: string;
   nb_terrains: number;
   montant_total: number; // nb_terrains × 460 000
   montant_verse: number;
@@ -50,6 +51,7 @@ export type TypePaiementLogement = 'acompte' | 'mensualite';
 export interface SouscriptionLogement {
   id: string;
   membre_id: string;
+  offre_id?: string;
   type_villa: TypeBien;
   site: SiteLogement;
   titre: TitreLogement;

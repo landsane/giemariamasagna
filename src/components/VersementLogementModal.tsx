@@ -1,35 +1,37 @@
 import { useState } from 'react';
-import type { SouscriptionLogement, Membre, ModePayment, TypePaiementLogement } from '@/types';
+import type { SouscriptionLogement, Membre, ModePayment, TypePaiementLogement, PaiementLogement } from '@/types';
 import { LABELS_MODE } from '@/types';
-import { insertPaiementLogement } from '@/lib/queries';
+import { insertPaiementLogement, updatePaiementLogement } from '@/lib/queries';
 import { formatCurrency } from '@/lib/utils';
 
 interface Props {
   souscription: SouscriptionLogement;
   membre: Membre | undefined;
   initialType: TypePaiementLogement;
+  initial?: PaiementLogement;
   onClose: () => void;
   onSaved: () => void;
 }
 
 const MODES: ModePayment[] = ['wave', 'orange_money', 'banque', 'autres'];
 
-export default function VersementLogementModal({ souscription, membre, initialType, onClose, onSaved }: Props) {
+export default function VersementLogementModal({ souscription, membre, initialType, initial, onClose, onSaved }: Props) {
+  const editing = !!initial;
   const resteAcompte = Math.max(0, souscription.acompte_requis - souscription.acompte_verse);
 
-  const [typePaiement, setTypePaiement] = useState<TypePaiementLogement>(initialType);
+  const [typePaiement, setTypePaiement] = useState<TypePaiementLogement>(initial?.type_paiement ?? initialType);
   const [montant, setMontant]           = useState(() =>
-    String(initialType === 'acompte' ? resteAcompte : souscription.mensualite)
+    initial ? String(initial.montant) : String(initialType === 'acompte' ? resteAcompte : souscription.mensualite)
   );
-  const [date, setDate]                 = useState(new Date().toISOString().slice(0, 10));
-  const [mode, setMode]                 = useState<ModePayment>('wave');
-  const [reference, setReference]       = useState('');
+  const [date, setDate]                 = useState(initial?.date_versement ?? new Date().toISOString().slice(0, 10));
+  const [mode, setMode]                 = useState<ModePayment>(initial?.mode_paiement ?? 'wave');
+  const [reference, setReference]       = useState(initial?.reference ?? '');
   const [saving, setSaving]             = useState(false);
   const [error, setError]               = useState('');
 
   function handleTypeChange(t: TypePaiementLogement) {
     setTypePaiement(t);
-    setMontant(String(t === 'acompte' ? resteAcompte : souscription.mensualite));
+    if (!editing) setMontant(String(t === 'acompte' ? resteAcompte : souscription.mensualite));
   }
 
   async function handleSubmit() {
@@ -39,15 +41,25 @@ export default function VersementLogementModal({ souscription, membre, initialTy
     setSaving(true);
     setError('');
     try {
-      await insertPaiementLogement({
-        souscription_id: souscription.id,
-        membre_id:       souscription.membre_id,
-        type_paiement:   typePaiement,
-        date_versement:  date,
-        montant:         m,
-        mode_paiement:   mode,
-        reference:       reference.trim() || undefined,
-      });
+      if (editing && initial) {
+        await updatePaiementLogement(initial.id, souscription.id, {
+          type_paiement:  typePaiement,
+          date_versement: date,
+          montant:        m,
+          mode_paiement:  mode,
+          reference:      reference.trim() || undefined,
+        });
+      } else {
+        await insertPaiementLogement({
+          souscription_id: souscription.id,
+          membre_id:       souscription.membre_id,
+          type_paiement:   typePaiement,
+          date_versement:  date,
+          montant:         m,
+          mode_paiement:   mode,
+          reference:       reference.trim() || undefined,
+        });
+      }
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -62,7 +74,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 className="font-black text-gray-900">Nouveau versement</h3>
+            <h3 className="font-black text-gray-900">{editing ? 'Modifier le versement' : 'Nouveau versement'}</h3>
             <p className="text-xs text-gray-400 mt-0.5">{membre?.prenom} {membre?.nom}</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -145,7 +157,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
           </button>
           <button onClick={handleSubmit} disabled={saving}
             className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? 'Enregistrement…' : editing ? 'Enregistrer les modifications' : 'Enregistrer'}
           </button>
         </div>
       </div>

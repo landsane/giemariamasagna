@@ -1,26 +1,28 @@
 import { useState } from 'react';
-import type { SouscriptionTerrain, Membre, ModePayment } from '@/types';
+import type { SouscriptionTerrain, Membre, ModePayment, PaiementTerrain } from '@/types';
 import { LABELS_MODE } from '@/types';
-import { insertPaiementTerrain } from '@/lib/queries';
+import { insertPaiementTerrain, updatePaiementTerrain } from '@/lib/queries';
 import { formatCurrency } from '@/lib/utils';
 
 interface Props {
   souscription: SouscriptionTerrain;
   membre: Membre | undefined;
   nextNumero: number;
+  initial?: PaiementTerrain;
   onClose: () => void;
   onSaved: () => void;
 }
 
 const MODES: ModePayment[] = ['wave', 'orange_money', 'banque', 'autres'];
 
-export default function VersementTerrainModal({ souscription, membre, nextNumero, onClose, onSaved }: Props) {
-  const [montant, setMontant]               = useState('');
-  const [date, setDate]                     = useState(new Date().toISOString().slice(0, 10));
-  const [encaisseurPrenom, setPrenom]       = useState('');
-  const [encaisseurNom, setNom]             = useState('');
-  const [mode, setMode]                     = useState<ModePayment>('wave');
-  const [reference, setReference]           = useState('');
+export default function VersementTerrainModal({ souscription, membre, nextNumero, initial, onClose, onSaved }: Props) {
+  const editing = !!initial;
+  const [montant, setMontant]               = useState(initial ? String(initial.montant) : '');
+  const [date, setDate]                     = useState(initial?.date_versement ?? new Date().toISOString().slice(0, 10));
+  const [encaisseurPrenom, setPrenom]       = useState(initial?.encaisseur_prenom ?? '');
+  const [encaisseurNom, setNom]             = useState(initial?.encaisseur_nom ?? '');
+  const [mode, setMode]                     = useState<ModePayment>(initial?.mode_paiement ?? 'wave');
+  const [reference, setReference]           = useState(initial?.reference ?? '');
   const [saving, setSaving]                 = useState(false);
   const [error, setError]                   = useState('');
 
@@ -32,17 +34,28 @@ export default function VersementTerrainModal({ souscription, membre, nextNumero
     setSaving(true);
     setError('');
     try {
-      await insertPaiementTerrain({
-        souscription_id:   souscription.id,
-        membre_id:         souscription.membre_id,
-        numero_versement:  nextNumero,
-        date_versement:    date,
-        montant:           m,
-        encaisseur_nom:    encaisseurNom.trim(),
-        encaisseur_prenom: encaisseurPrenom.trim(),
-        mode_paiement:     mode,
-        reference:         reference.trim() || undefined,
-      });
+      if (editing && initial) {
+        await updatePaiementTerrain(initial.id, souscription.id, {
+          date_versement:    date,
+          montant:           m,
+          encaisseur_nom:    encaisseurNom.trim(),
+          encaisseur_prenom: encaisseurPrenom.trim(),
+          mode_paiement:     mode,
+          reference:         reference.trim() || undefined,
+        });
+      } else {
+        await insertPaiementTerrain({
+          souscription_id:   souscription.id,
+          membre_id:         souscription.membre_id,
+          numero_versement:  nextNumero,
+          date_versement:    date,
+          montant:           m,
+          encaisseur_nom:    encaisseurNom.trim(),
+          encaisseur_prenom: encaisseurPrenom.trim(),
+          mode_paiement:     mode,
+          reference:         reference.trim() || undefined,
+        });
+      }
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -57,9 +70,9 @@ export default function VersementTerrainModal({ souscription, membre, nextNumero
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md overflow-hidden max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 className="font-black text-gray-900">Nouveau versement</h3>
+            <h3 className="font-black text-gray-900">{editing ? 'Modifier le versement' : 'Nouveau versement'}</h3>
             <p className="text-xs text-gray-400 mt-0.5">
-              {membre?.prenom} {membre?.nom} · Versement n°{nextNumero}
+              {membre?.prenom} {membre?.nom} · Versement n°{editing ? initial!.numero_versement : nextNumero}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -148,7 +161,7 @@ export default function VersementTerrainModal({ souscription, membre, nextNumero
           </button>
           <button onClick={handleSubmit} disabled={saving}
             className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? 'Enregistrement…' : editing ? 'Enregistrer les modifications' : 'Enregistrer'}
           </button>
         </div>
       </div>

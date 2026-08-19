@@ -171,6 +171,24 @@ export async function fetchPaiementsTerrainBySouscription(souscriptionId: string
   return data ?? [];
 }
 
+// Recalcule montant_verse / statut d'une souscription terrain à partir de la
+// somme réelle de ses versements — plutôt que d'incrémenter un compteur, ce qui
+// évite tout risque de désynchronisation après une correction (édition/suppression).
+async function recalculerSouscriptionTerrain(souscriptionId: string) {
+  const [{ data: paiements }, { data: souscription }] = await Promise.all([
+    supabase.from('paiements_terrains').select('montant').eq('souscription_id', souscriptionId),
+    supabase.from('souscriptions_terrains').select('montant_total').eq('id', souscriptionId).single(),
+  ]);
+  if (!souscription) return;
+
+  const montantVerse = (paiements ?? []).reduce((a, p) => a + p.montant, 0);
+  const solde = montantVerse >= souscription.montant_total;
+  await supabase
+    .from('souscriptions_terrains')
+    .update({ montant_verse: montantVerse, statut: solde ? 'solde' : 'en_cours' })
+    .eq('id', souscriptionId);
+}
+
 export async function insertPaiementTerrain(
   data: Pick<
     PaiementTerrain,
@@ -178,34 +196,34 @@ export async function insertPaiementTerrain(
     'montant' | 'encaisseur_nom' | 'encaisseur_prenom' | 'mode_paiement' | 'reference'
   >
 ) {
-  // 1. Insérer le paiement
-  const { data: paiement, error: errPaiement } = await supabase
+  const { data: paiement, error } = await supabase
     .from('paiements_terrains')
     .insert(data)
     .select()
     .single();
-  if (errPaiement) throw errPaiement;
+  if (error) throw error;
 
-  // 2. Mettre à jour montant_verse sur la souscription
-  const { data: souscription } = await supabase
-    .from('souscriptions_terrains')
-    .select('montant_verse, montant_total')
-    .eq('id', data.souscription_id)
-    .single();
-
-  if (souscription) {
-    const nouveauVerse = souscription.montant_verse + data.montant;
-    const solde = nouveauVerse >= souscription.montant_total;
-    await supabase
-      .from('souscriptions_terrains')
-      .update({
-        montant_verse: nouveauVerse,
-        statut: solde ? 'solde' : 'en_cours',
-      })
-      .eq('id', data.souscription_id);
-  }
-
+  await recalculerSouscriptionTerrain(data.souscription_id);
   return paiement;
+}
+
+export async function updatePaiementTerrain(
+  id: string,
+  souscriptionId: string,
+  data: Partial<Pick<
+    PaiementTerrain,
+    'date_versement' | 'montant' | 'encaisseur_nom' | 'encaisseur_prenom' | 'mode_paiement' | 'reference'
+  >>
+) {
+  const { error } = await supabase.from('paiements_terrains').update(data).eq('id', id);
+  if (error) throw error;
+  await recalculerSouscriptionTerrain(souscriptionId);
+}
+
+export async function deletePaiementTerrain(id: string, souscriptionId: string) {
+  const { error } = await supabase.from('paiements_terrains').delete().eq('id', id);
+  if (error) throw error;
+  await recalculerSouscriptionTerrain(souscriptionId);
 }
 
 // ─── Souscriptions Logements ──────────────────────────────────────────────────
@@ -254,6 +272,28 @@ export async function fetchPaiementsLogementBySouscription(souscriptionId: strin
   return data ?? [];
 }
 
+// Recalcule acompte_verse / nb_mensualites_payees / statut d'une souscription
+// logement à partir des versements réellement enregistrés (voir commentaire de
+// recalculerSouscriptionTerrain). Un dossier déjà attribué/livré n'est jamais
+// rétrogradé par une simple correction de versement.
+async function recalculerSouscriptionLogement(souscriptionId: string) {
+  const [{ data: paiements }, { data: souscription }] = await Promise.all([
+    supabase.from('paiements_logements').select('type_paiement, montant').eq('souscription_id', souscriptionId),
+    supabase.from('souscriptions_logements').select('acompte_requis, statut').eq('id', souscriptionId).single(),
+  ]);
+  if (!souscription) return;
+
+  const acompteVerse         = (paiements ?? []).filter(p => p.type_paiement === 'acompte').reduce((a, p) => a + p.montant, 0);
+  const nbMensualitesPayees  = (paiements ?? []).filter(p => p.type_paiement === 'mensualite').length;
+  const dejaAvance           = souscription.statut === 'attribue' || souscription.statut === 'livre';
+  const statut               = dejaAvance ? souscription.statut : (acompteVerse >= souscription.acompte_requis ? 'valide' : 'en_cours');
+
+  await supabase
+    .from('souscriptions_logements')
+    .update({ acompte_verse: acompteVerse, nb_mensualites_payees: nbMensualitesPayees, statut })
+    .eq('id', souscriptionId);
+}
+
 export async function insertPaiementLogement(
   data: Pick<
     PaiementLogement,
@@ -261,38 +301,32 @@ export async function insertPaiementLogement(
     'date_versement' | 'montant' | 'mode_paiement' | 'reference'
   >
 ) {
-  const { data: paiement, error: errPaiement } = await supabase
+  const { data: paiement, error } = await supabase
     .from('paiements_logements')
     .insert(data)
     .select()
     .single();
-  if (errPaiement) throw errPaiement;
+  if (error) throw error;
 
-  // Mettre à jour acompte_verse ou nb_mensualites_payees
-  const { data: souscription } = await supabase
-    .from('souscriptions_logements')
-    .select('acompte_verse, acompte_requis, nb_mensualites_payees')
-    .eq('id', data.souscription_id)
-    .single();
-
-  if (souscription) {
-    if (data.type_paiement === 'acompte') {
-      const nouvelAcompte = souscription.acompte_verse + data.montant;
-      const valide = nouvelAcompte >= souscription.acompte_requis;
-      await supabase
-        .from('souscriptions_logements')
-        .update({
-          acompte_verse: nouvelAcompte,
-          statut: valide ? 'valide' : 'en_cours',
-        })
-        .eq('id', data.souscription_id);
-    } else {
-      await supabase
-        .from('souscriptions_logements')
-        .update({ nb_mensualites_payees: souscription.nb_mensualites_payees + 1 })
-        .eq('id', data.souscription_id);
-    }
-  }
-
+  await recalculerSouscriptionLogement(data.souscription_id);
   return paiement;
+}
+
+export async function updatePaiementLogement(
+  id: string,
+  souscriptionId: string,
+  data: Partial<Pick<
+    PaiementLogement,
+    'type_paiement' | 'date_versement' | 'montant' | 'mode_paiement' | 'reference'
+  >>
+) {
+  const { error } = await supabase.from('paiements_logements').update(data).eq('id', id);
+  if (error) throw error;
+  await recalculerSouscriptionLogement(souscriptionId);
+}
+
+export async function deletePaiementLogement(id: string, souscriptionId: string) {
+  const { error } = await supabase.from('paiements_logements').delete().eq('id', id);
+  if (error) throw error;
+  await recalculerSouscriptionLogement(souscriptionId);
 }
