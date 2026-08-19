@@ -86,6 +86,7 @@ export interface Offre {
   nom: string;
   description?: string;
   localisation: string;
+  surface_m2?: number;
   prix_unitaire: number;
   frais_dossier: number;
   taux_acompte: number;   // 0.08 = 8%

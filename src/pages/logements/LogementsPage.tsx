@@ -28,7 +28,7 @@ function OffreActiveCard({ offre }: { offre: Offre }) {
     <div className={`border rounded-xl p-4 flex flex-col gap-2 ${color.bg}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className={`text-sm font-bold ${color.text}`}>{offre.nom}</p>
+          <p className={`text-sm font-bold ${color.text}`}>{titreAvecSurface(offre.nom, offre.surface_m2)}</p>
           <p className={`text-xs flex items-center gap-1 mt-0.5 ${color.sub}`}>
             <MapPin className="w-3 h-3" />{offre.localisation}
           </p>
@@ -65,7 +65,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'green' : statut === 'attribue' ? 'blue' : statut === 'valide' ? 'purple' : 'amber';

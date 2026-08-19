@@ -5,7 +5,7 @@ import type { Offre, TypeOffre } from '@/types';
 import { LABELS_TYPE_OFFRE } from '@/types';
 import Badge from '@/components/Badge';
 import Spinner from '@/components/Spinner';
-import { formatCurrency, calculerAcompte, calculerMensualite } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite, formatSurface, titreAvecSurface } from '@/lib/utils';
 
 // ─── Formulaire offre ─────────────────────────────────────────────────────────
 interface FormulaireProps {
@@ -27,6 +27,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
   const [nom,           setNom]          = useState(initial?.nom ?? '');
   const [description,   setDescription]  = useState(initial?.description ?? '');
   const [localisation,  setLocalisation] = useState(initial?.localisation ?? '');
+  const [surfaceInput,  setSurfaceInput] = useState(initial?.surface_m2 ? String(initial.surface_m2) : '');
   const [prixInput,     setPrixInput]    = useState(initial ? String(initial.prix_unitaire) : '');
   const [fraisInput,    setFraisInput]   = useState(initial ? String(initial.frais_dossier) : '0');
   const [tauxInput,     setTauxInput]    = useState(
@@ -45,6 +46,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
     setNbMensInput(String(DEFAULTS[t].nb_mensualites));
   }
 
+  const surfaceM2     = parseInt(surfaceInput.replace(/\s/g, ''), 10) || 0;
   const prixUnitaire  = parseInt(prixInput.replace(/\s/g, ''), 10) || 0;
   const fraisDossier  = parseInt(fraisInput.replace(/\s/g, ''), 10) || 0;
   const tauxAcompte   = (parseFloat(tauxInput) || 0) / 100;
@@ -66,6 +68,7 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
       nom:            nom.trim(),
       description:    description.trim() || undefined,
       localisation:   localisation.trim(),
+      surface_m2:     surfaceM2 > 0 ? surfaceM2 : undefined,
       prix_unitaire:  prixUnitaire,
       frais_dossier:  fraisDossier,
       taux_acompte:   tauxAcompte,
@@ -146,13 +149,22 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
             />
           </div>
 
-          {/* Localisation */}
-          <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Localisation *</label>
-            <input type="text" value={localisation} onChange={e => setLocalisation(e.target.value)}
-              placeholder="ex : Ndoyenne 01 – Sébikhotane"
-              className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
-            />
+          {/* Localisation + Surface */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Localisation *</label>
+              <input type="text" value={localisation} onChange={e => setLocalisation(e.target.value)}
+                placeholder="ex : Ndoyenne 01 – Sébikhotane"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Surface (m²)</label>
+              <input type="text" inputMode="numeric" value={surfaceInput} onChange={e => setSurfaceInput(e.target.value)}
+                placeholder="ex : 300"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
+              />
+            </div>
           </div>
 
           {/* Description */}
@@ -206,6 +218,12 @@ function FormulaireOffre({ initial, onClose, onSaved }: FormulaireProps) {
           {/* Récap calculé */}
           {prixUnitaire > 0 && (
             <div className="bg-gray-50 rounded-xl p-4 grid grid-cols-3 gap-3">
+              {surfaceM2 > 0 && (
+                <div className="text-center">
+                  <p className="text-xs text-gray-400">Surface</p>
+                  <p className="text-sm font-black text-blue-700 mt-0.5">{formatSurface(surfaceM2)}</p>
+                </div>
+              )}
               {tauxAcompte > 0 && (
                 <div className="text-center">
                   <p className="text-xs text-gray-400">Acompte</p>
@@ -270,7 +288,7 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
               {offre.statut === 'active' ? 'Active' : offre.statut === 'complet' ? 'Complète' : 'Inactive'}
             </Badge>
           </div>
-          <p className="font-bold text-gray-900 text-sm leading-tight">{offre.nom}</p>
+          <p className="font-bold text-gray-900 text-sm leading-tight">{titreAvecSurface(offre.nom, offre.surface_m2)}</p>
           <p className="text-xs text-gray-400 mt-0.5">📍 {offre.localisation}</p>
         </div>
         <div className="flex gap-1.5 flex-shrink-0">
@@ -296,6 +314,12 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
 
       {/* Grille financière */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {offre.surface_m2 && (
+          <div className="bg-blue-50 rounded-xl p-3">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Surface</p>
+            <p className="text-sm font-black text-blue-700 mt-0.5">{formatSurface(offre.surface_m2)}</p>
+          </div>
+        )}
         <div className="bg-gray-50 rounded-xl p-3">
           <p className="text-[10px] text-gray-400 uppercase tracking-wide">
             {offre.type === 'terrain_simple' ? 'Prix / parcelle' : 'Prix total'}

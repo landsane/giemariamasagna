@@ -19,7 +19,7 @@ import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModa
 import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, formatSurface } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
 function OffreSimpleCard({ offre }: { offre: Offre }) {
@@ -28,7 +28,7 @@ function OffreSimpleCard({ offre }: { offre: Offre }) {
     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-blue-900">{offre.nom}</p>
+          <p className="text-sm font-bold text-blue-900">{titreAvecSurface(offre.nom, offre.surface_m2)}</p>
           <p className="text-xs text-blue-600 flex items-center gap-1 mt-0.5">
             <MapPin className="w-3 h-3" />{offre.localisation}
           </p>
@@ -67,7 +67,7 @@ function OffreTFCard({ offre }: { offre: Offre }) {
     <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-green-900">{offre.nom}</p>
+          <p className="text-sm font-bold text-green-900">{titreAvecSurface(offre.nom, offre.surface_m2)}</p>
           <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
             <MapPin className="w-3 h-3" />{offre.localisation}
           </p>
@@ -105,15 +105,18 @@ function OffreTFCard({ offre }: { offre: Offre }) {
 function DetailSouscription({
   souscription,
   membres,
+  offres,
   onClose,
   onPaiementAdded,
 }: {
   souscription: SouscriptionTerrain;
   membres: Membre[];
+  offres: Offre[];
   onClose: () => void;
   onPaiementAdded: () => void;
 }) {
   const membre = membres.find(m => m.id === souscription.membre_id);
+  const offre  = offres.find(o => o.id === souscription.offre_id);
   const { data: paiements, loading, refetch } = useAsync(
     () => fetchPaiementsTerrainBySouscription(souscription.id),
     [souscription.id]
@@ -131,6 +134,7 @@ function DetailSouscription({
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
               {membre?.id_membre} · {souscription.nb_terrains} terrain{souscription.nb_terrains > 1 ? 's' : ''}
+              {offre?.surface_m2 ? ` · ${formatSurface(offre.surface_m2)}/parcelle` : ''}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -273,6 +277,7 @@ function DetailTerrainTF({
               <p className="text-[11px] text-green-600 uppercase tracking-wide">Parcelles souscrites</p>
               <p className="text-lg font-black text-green-800">
                 {souscription.nb_terrains} parcelle{souscription.nb_terrains > 1 ? 's' : ''}
+                {offre?.surface_m2 ? ` · ${formatSurface(offre.surface_m2)} chacune` : ''}
               </p>
             </div>
             <div className="text-right">
@@ -707,7 +712,7 @@ export default function TerrainsPage() {
                   </div>
                   <div className="text-xs text-gray-500 mb-3 space-y-1">
                     <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
-                    <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}</p>
+                    <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}{o?.surface_m2 ? ` (${formatSurface(o.surface_m2)})` : ''}</p>
                     <p>Prix total : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
                     <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>
                       {formatCurrency(s.acompte_verse)} / {formatCurrency(s.acompte_requis)}
@@ -730,6 +735,7 @@ export default function TerrainsPage() {
         <DetailSouscription
           souscription={selected}
           membres={membres ?? []}
+          offres={toutesOffres ?? []}
           onClose={() => setSelected(null)}
           onPaiementAdded={refetchAll}
         />

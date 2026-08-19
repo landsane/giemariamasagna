@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Membre, Offre } from '@/types';
 import { insertSouscriptionTerrain } from '@/lib/queries';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, titreAvecSurface } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -74,7 +74,7 @@ export default function NouveauSouscriptionTerrainModal({ membres, offres, onClo
                       offreId === o.id ? 'border-blue-400 bg-blue-50' : 'border-gray-100 hover:border-gray-200'
                     }`}
                   >
-                    <p className="text-sm font-bold text-gray-900">{o.nom}</p>
+                    <p className="text-sm font-bold text-gray-900">{titreAvecSurface(o.nom, o.surface_m2)}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {o.localisation} · {formatCurrency(o.prix_unitaire)}/parcelle · {o.nb_mensualites} mois
                     </p>

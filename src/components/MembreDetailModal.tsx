@@ -9,7 +9,7 @@ import {
   fetchPaiementsTerrainBySouscription, fetchPaiementsLogementBySouscription,
   deletePaiementTerrain, deletePaiementLogement,
 } from '@/lib/queries';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, titreAvecSurface } from '@/lib/utils';
 import Badge from './Badge';
 import ProgressBar from './ProgressBar';
 import Spinner from './Spinner';
@@ -94,7 +94,7 @@ function SectionTerrain({
           <Map className="w-4 h-4 text-blue-600 flex-shrink-0" />
           <div>
             <p className="text-sm font-bold text-blue-900">
-              {offre?.nom ?? `Terrain simple · ${souscription.nb_terrains} parcelle${souscription.nb_terrains > 1 ? 's' : ''}`}
+              {offre ? titreAvecSurface(offre.nom, offre.surface_m2) : `Terrain simple · ${souscription.nb_terrains} parcelle${souscription.nb_terrains > 1 ? 's' : ''}`}
             </p>
             {offre && (
               <p className="text-[11px] text-blue-600 flex items-center gap-1">
@@ -176,7 +176,7 @@ function SectionLogement({
       ? { bg: 'bg-purple-50/60 border-purple-100', text: 'text-purple-900', icon: 'text-purple-600', sub: 'text-purple-600' }
       : { bg: 'bg-indigo-50/60 border-indigo-100', text: 'text-indigo-900', icon: 'text-indigo-600', sub: 'text-indigo-600' };
 
-  const titre = offre?.nom ?? (
+  const titre = offre ? titreAvecSurface(offre.nom, offre.surface_m2) : (
     isTerrainTF
       ? `Terrain TF · ${LABELS_SITE[souscription.site].split('–')[0].trim()}`
       : `Villa ${souscription.type_villa} · ${LABELS_SITE[souscription.site].split('–')[0].trim()} · ${souscription.titre}`

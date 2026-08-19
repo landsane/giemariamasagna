@@ -3,7 +3,7 @@ import { MapPin, Tag } from 'lucide-react';
 import type { Membre, Offre } from '@/types';
 import { TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre, titreAvecSurface } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -147,7 +147,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{o.nom}</p>
+                          <p className="text-sm font-bold text-gray-900">{titreAvecSurface(o.nom, o.surface_m2)}</p>
                           <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                             <MapPin className="w-3 h-3" />{o.localisation}
                           </p>

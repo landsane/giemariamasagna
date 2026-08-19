@@ -41,6 +41,21 @@ export function pourcentageAcompte(acompteRequis: number, prixTotal: number): nu
   return prixTotal > 0 ? Math.round((acompteRequis / prixTotal) * 100) : 0;
 }
 
+/** Formate une surface en m² (ex : 300 → "300 m²"). Chaîne vide si non renseignée. */
+export function formatSurface(surfaceM2: number | undefined | null): string {
+  return surfaceM2 ? `${new Intl.NumberFormat('fr-FR').format(surfaceM2)} m²` : '';
+}
+
+/**
+ * Compose un titre avec sa surface quand elle est connue (ex : "Villa F3 – Ndoyenne"
+ * → "Villa F3 – Ndoyenne · 300 m²"), pour que la surface soit toujours visible
+ * dans les titres des offres et des biens acquis, pas seulement en détail.
+ */
+export function titreAvecSurface(titre: string, surfaceM2: number | undefined | null): string {
+  const surface = formatSurface(surfaceM2);
+  return surface ? `${titre} · ${surface}` : titre;
+}
+
 /**
  * Localisation à afficher pour une souscription logement/terrain TF :
  * toujours préférer le texte libre de l'offre du catalogue (source de vérité,
