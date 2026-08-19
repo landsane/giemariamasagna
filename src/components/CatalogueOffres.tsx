@@ -112,8 +112,8 @@ function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: Formulaire
   const TYPES = ALL_TYPES.filter(t => allowedTypes.includes(t.id));
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:my-4 max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto animate-fade-in" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:my-4 max-h-[95dvh] overflow-y-auto animate-scale-in" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
           <div>
             <h3 className="font-black text-gray-900">{editing ? 'Modifier l\'offre' : 'Nouvelle offre'}</h3>
@@ -292,7 +292,7 @@ function OffreCard({ offre, onToggle, onEdit }: { offre: Offre; onToggle: () => 
                                       'text-green-700 bg-green-50 border-green-100';
 
   return (
-    <div className={`bg-white rounded-2xl border p-5 space-y-4 transition-opacity ${offre.statut !== 'active' ? 'opacity-60' : ''}`}>
+    <div className={`bg-white rounded-2xl border p-5 space-y-4 transition-all duration-200 hover:shadow-md ${offre.statut !== 'active' ? 'opacity-60' : ''}`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -442,7 +442,7 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
           {sections.map(s => (
             <button key={s.type}
               onClick={() => setFiltreType(filtreType === s.type ? 'tous' : s.type)}
-              className={`bg-white rounded-xl border p-4 text-left transition-all hover:shadow-sm ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
+              className={`bg-white rounded-xl border p-4 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
             >
               <p className={`text-2xl font-black ${s.color}`}>{parType[s.type].length}</p>
               <p className="text-xs font-semibold text-gray-700 mt-0.5">{s.label}</p>

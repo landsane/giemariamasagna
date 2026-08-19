@@ -64,8 +64,8 @@ function DetailLogement({
   const totalPct       = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
-      <div className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50 animate-fade-in" onClick={onClose}>
+      <div className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full animate-slide-in-up" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
@@ -203,7 +203,7 @@ function DossierCard({ s, membres, offres, onSelect }: { s: SouscriptionLogement
 
   return (
     <div
-      className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
+      className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-green-200 transition-all duration-200"
       onClick={() => onSelect(s)}
     >
       <div className="flex items-start justify-between mb-3">
@@ -362,16 +362,16 @@ export default function LogementsPage() {
           { label: 'Villa F2', count: stats.nb_f2, verse: stats.verse_f2, color: 'text-blue-600' },
           { label: 'Villa F3', count: stats.nb_f3, verse: stats.verse_f3, color: 'text-purple-600' },
         ].map(s => (
-          <div key={s.label} className="bg-white rounded-xl border border-emerald-100 p-4">
-            <p className={`text-2xl font-black ${s.color}`}>{s.count}</p>
+          <div key={s.label} className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-4 transition-all duration-200 hover:shadow-md hover:border-emerald-200">
+            <p className={`text-2xl font-black tabular-nums ${s.color}`}>{s.count}</p>
             <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
             {s.verse > 0 && (
               <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(s.verse)}</p>
             )}
           </div>
         ))}
-        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-          <p className="text-base font-black text-green-700">{formatCurrency(totalPaiements)}</p>
+        <div className="animate-fade-in-up bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 transition-all duration-200 hover:shadow-md" style={{ animationDelay: '120ms' }}>
+          <p className="text-base font-black text-green-700 tabular-nums">{formatCurrency(totalPaiements)}</p>
           <p className="text-xs text-gray-500 mt-0.5">Total encaissé</p>
           <p className="text-xs text-gray-400 mt-1">{logements.length} dossier{logements.length > 1 ? 's' : ''}</p>
         </div>

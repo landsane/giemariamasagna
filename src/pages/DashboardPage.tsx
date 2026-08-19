@@ -74,20 +74,45 @@ export default function DashboardPage() {
 
   const loading = lm || lt || ll || lpt || lpl;
 
-  const nbMembresActifs      = (membres ?? []).filter(m => m.statut === 'actif').length;
-  const nbTerrainsTotal      = (souscTerrain ?? []).reduce((a, s) => a + s.nb_terrains, 0);
-  const nbDossiersLog        = (souscLogement ?? []).length;
-  const totalVerseTerrains   = (souscTerrain ?? []).reduce((a, s) => a + s.montant_verse, 0);
-  const totalVersePaiLog     = (paiLogements ?? []).reduce((a, p) => a + p.montant, 0);
-  const totalVerse           = totalVerseTerrains + totalVersePaiLog;
-  const totalMontantTotal    = (souscTerrain ?? []).reduce((a, s) => a + s.montant_total, 0);
-  const avancementGlobal     = totalMontantTotal > 0 ? Math.round((totalVerseTerrains / totalMontantTotal) * 100) : 0;
+  // Les dossiers Terrain TF vivent dans souscriptions_logements (type_villa
+  // === 'terrain'), au même titre que les villas F2/F3 — mais ce sont des
+  // terrains, pas des logements. On les sépare ici pour que "Terrains"
+  // (KPI + carte) reflète simple + TF, et que "Logements" ne reflète que
+  // les villas F2/F3 (comme sur les pages Terrains/Logements elles-mêmes).
+  const souscLogementTF   = (souscLogement ?? []).filter(s => s.type_villa === 'terrain');
+  const souscLogementF2F3 = (souscLogement ?? []).filter(s => s.type_villa !== 'terrain');
 
-  const derniersVersements = [...(paiTerrains ?? [])]
-    .sort((a, b) => new Date(b.date_versement).getTime() - new Date(a.date_versement).getTime())
-    .slice(0, 5);
+  const nbMembresActifs = (membres ?? []).filter(m => m.statut === 'actif').length;
 
-  const dossiersEnCours = (souscLogement ?? []).filter(s => s.statut === 'en_cours').slice(0, 4);
+  // ── Terrains (simple + TF) ──
+  const nbTerrainsTotal = (souscTerrain ?? []).reduce((a, s) => a + s.nb_terrains, 0)
+    + souscLogementTF.reduce((a, s) => a + s.nb_terrains, 0);
+  const totalVerseTerrainsSimple = (souscTerrain ?? []).reduce((a, s) => a + s.montant_verse, 0);
+  const totalVerseTF = souscLogementTF.reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0);
+  const totalVerseTerrains = totalVerseTerrainsSimple + totalVerseTF;
+  const totalMontantTerrains = (souscTerrain ?? []).reduce((a, s) => a + s.montant_total, 0)
+    + souscLogementTF.reduce((a, s) => a + s.prix_total, 0);
+  const avancementGlobal = totalMontantTerrains > 0 ? Math.round((totalVerseTerrains / totalMontantTerrains) * 100) : 0;
+
+  const tfIds = new Set(souscLogementTF.map(s => s.id));
+  const derniersVersements = [
+    ...(paiTerrains ?? []).map(p => ({
+      id: p.id, date: p.date_versement, montant: p.montant,
+      membreId: (souscTerrain ?? []).find(s => s.id === p.souscription_id)?.membre_id,
+    })),
+    ...(paiLogements ?? []).filter(p => tfIds.has(p.souscription_id)).map(p => ({
+      id: p.id, date: p.date_versement, montant: p.montant,
+      membreId: souscLogementTF.find(s => s.id === p.souscription_id)?.membre_id,
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+
+  // ── Logements (F2/F3 uniquement) ──
+  const nbDossiersLog = souscLogementF2F3.length;
+  const f2f3Ids = new Set(souscLogementF2F3.map(s => s.id));
+  const totalVerseLogements = (paiLogements ?? []).filter(p => f2f3Ids.has(p.souscription_id)).reduce((a, p) => a + p.montant, 0);
+  const dossiersEnCours = souscLogementF2F3.filter(s => s.statut === 'en_cours').slice(0, 4);
+
+  const totalVerse = totalVerseTerrains + totalVerseLogements;
 
   const CARDS = [
     { icon: Users,      label: 'Membres actifs',    value: String(nbMembresActifs),    numeric: nbMembresActifs, gradient: 'from-blue-500 to-blue-600',     ring: 'ring-blue-300',    to: '/membres' },
@@ -125,7 +150,7 @@ export default function DashboardPage() {
               <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <Map className="w-4 h-4 text-emerald-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 text-sm">Terrains Simples</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">Terrains</h3>
             </div>
             <Link to="/terrains" className="group flex items-center gap-0.5 text-xs text-emerald-600 hover:text-emerald-700 transition-colors">
               Voir tout
@@ -157,7 +182,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-orange-50 rounded-lg p-2.5 transition-colors duration-200 hover:bg-orange-100/70">
                   <p className="text-gray-400">Reste</p>
-                  <p className="font-bold text-orange-600">{formatCurrency(totalMontantTotal - totalVerseTerrains)}</p>
+                  <p className="font-bold text-orange-600">{formatCurrency(totalMontantTerrains - totalVerseTerrains)}</p>
                 </div>
               </div>
 
@@ -166,13 +191,12 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-400 mb-2">Derniers versements</p>
                   <div className="space-y-0.5">
                     {derniersVersements.map(p => {
-                      const souscription = (souscTerrain ?? []).find(s => s.id === p.souscription_id);
-                      const membre = (membres ?? []).find(m => m.id === souscription?.membre_id);
+                      const membre = (membres ?? []).find(m => m.id === p.membreId);
                       return (
                         <div key={p.id} className="flex items-center justify-between text-xs px-2 -mx-2 py-1.5 rounded-lg transition-colors duration-150 hover:bg-gray-50">
                           <span className="text-gray-700 truncate">{membre?.prenom} {membre?.nom}</span>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                            <span className="text-gray-400">{formatDate(p.date_versement)}</span>
+                            <span className="text-gray-400">{formatDate(p.date)}</span>
                             <span className="font-semibold text-emerald-700">{formatCurrency(p.montant)}</span>
                           </div>
                         </div>
@@ -196,7 +220,7 @@ export default function DashboardPage() {
               <div className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
                 <Building2 className="w-4 h-4 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 text-sm">Logements / Titre Foncier</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">Logements</h3>
             </div>
             <Link to="/logements" className="group flex items-center gap-0.5 text-xs text-purple-600 hover:text-purple-700 transition-colors">
               Voir tout
@@ -217,9 +241,9 @@ export default function DashboardPage() {
             <>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 {[
-                  { label: 'En cours',  count: (souscLogement ?? []).filter(s => s.statut === 'en_cours').length },
-                  { label: 'Validés',   count: (souscLogement ?? []).filter(s => s.statut === 'valide').length },
-                  { label: 'Attribués', count: (souscLogement ?? []).filter(s => s.statut === 'attribue').length },
+                  { label: 'En cours',  count: souscLogementF2F3.filter(s => s.statut === 'en_cours').length },
+                  { label: 'Validés',   count: souscLogementF2F3.filter(s => s.statut === 'valide').length },
+                  { label: 'Attribués', count: souscLogementF2F3.filter(s => s.statut === 'attribue').length },
                 ].map(item => (
                   <div key={item.label} className="bg-purple-50/60 rounded-lg p-2.5 text-center transition-colors duration-200 hover:bg-purple-100/60">
                     <p className="font-black text-gray-900 text-base">{item.count}</p>
@@ -258,7 +282,7 @@ export default function DashboardPage() {
 
               <div className="bg-purple-50/60 rounded-lg p-2.5 text-xs transition-colors duration-200 hover:bg-purple-100/60">
                 <p className="text-gray-400">Total encaissé logements</p>
-                <p className="font-bold text-purple-700">{formatCurrency(totalVersePaiLog)}</p>
+                <p className="font-bold text-purple-700">{formatCurrency(totalVerseLogements)}</p>
               </div>
             </>
           )}

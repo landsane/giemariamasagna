@@ -122,7 +122,7 @@ function MembreCard({
   return (
     <div
       onClick={() => onOpenDetail(membre)}
-      className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-md cursor-pointer ${membre.statut === 'inactif' ? 'opacity-60 border-emerald-100' : 'border-emerald-100'}`}
+      className={`bg-white rounded-2xl border p-4 space-y-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${membre.statut === 'inactif' ? 'opacity-60 border-emerald-100' : 'border-emerald-100'}`}
     >
       <div className="flex items-start gap-3">
         <Avatar membre={membre} size="lg" />
@@ -321,8 +321,8 @@ export default function MembresPage() {
             { label: 'Multi-offres',     value: stats.les_deux,       color: 'text-amber-600' },
             { label: 'Actifs',           value: stats.actifs,         color: 'text-gray-900' },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-xl border border-emerald-100 p-3 text-center">
-              <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
+            <div key={s.label} className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-3 text-center transition-all duration-200 hover:shadow-md hover:border-emerald-200">
+              <p className={`text-xl font-black tabular-nums ${s.color}`}>{s.value}</p>
               <p className="text-xs text-gray-400 mt-0.5 leading-tight">{s.label}</p>
             </div>
           ))}

@@ -12,16 +12,53 @@
   #root { min-height: 100svh; }
 }
 
+/* ─── Interactions globales ─────────────────────────────────────────────── */
+/* Transitions douces + retour au clic sur tout l'app, sans avoir à répéter
+   ces classes sur chaque bouton/lien un par un. */
+@layer base {
+  button, a, [role="button"], input, select, textarea {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+  }
+  button:active, [role="button"]:active {
+    transform: scale(0.98);
+  }
+  button:focus-visible, a:focus-visible, [role="button"]:focus-visible,
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid #10b981; /* emerald-500 */
+    outline-offset: 2px;
+  }
+}
+
 /* ─── Animations partagées ──────────────────────────────────────────────── */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes slide-in-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
 
 @layer utilities {
-  .animate-fade-in-up {
-    animation: fade-in-up 0.4s ease-out both;
-  }
+  .animate-fade-in-up    { animation: fade-in-up 0.4s ease-out both; }
+  .animate-fade-in       { animation: fade-in 0.2s ease-out both; }
+  .animate-scale-in      { animation: scale-in 0.2s ease-out both; }
+  .animate-slide-in-right{ animation: slide-in-right 0.25s ease-out both; }
+  .animate-slide-in-up   { animation: slide-in-up 0.25s ease-out both; }
 }
 
 /* Respecte la préférence système : pas d'animation décorative si demandé */

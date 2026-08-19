@@ -302,8 +302,8 @@ export default function MembreDetailModal({ membre, souscTerrains, souscLogement
   const nbOffres = terrains.length + logements.length;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto" onClick={onClose}>
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl sm:my-4 max-h-[95dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4 overflow-y-auto animate-fade-in" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl sm:my-4 max-h-[95dvh] overflow-y-auto animate-scale-in" onClick={e => e.stopPropagation()}>
 
         <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between sticky top-0 bg-white z-10">
           <div className="min-w-0">

@@ -46,9 +46,9 @@ function DetailSouscription({
   const [showVersement, setShowVersement] = useState(false);
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50 animate-fade-in" onClick={onClose}>
       <div
-        className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full"
+        className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full animate-slide-in-up"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
@@ -184,9 +184,9 @@ function DetailTerrainTF({
   const [versementType, setVersementType] = useState<TypePaiementLogement | null>(null);
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/30 flex items-end sm:items-start sm:justify-end z-50 animate-fade-in" onClick={onClose}>
       <div
-        className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full"
+        className="bg-white w-full sm:h-full sm:max-w-md rounded-t-2xl sm:rounded-none shadow-2xl overflow-y-auto flex flex-col max-h-[92dvh] sm:max-h-full animate-slide-in-up"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b border-emerald-100 px-6 py-4 flex items-center justify-between">
@@ -494,18 +494,18 @@ export default function TerrainsPage() {
       <div className="space-y-5">
       {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl border border-emerald-100 p-4">
-          <p className="text-2xl font-black text-blue-600">{stats.nb_simples}</p>
+        <div className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-4 transition-all duration-200 hover:shadow-md hover:border-emerald-200">
+          <p className="text-2xl font-black text-blue-600 tabular-nums">{stats.nb_simples}</p>
           <p className="text-xs text-gray-400 mt-0.5">Terrains Simples</p>
           {stats.verse_simple > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(stats.verse_simple)}</p>}
         </div>
-        <div className="bg-white rounded-xl border border-emerald-100 p-4">
-          <p className="text-2xl font-black text-green-600">{statsTF.nb}</p>
+        <div className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-4 transition-all duration-200 hover:shadow-md hover:border-emerald-200" style={{ animationDelay: '60ms' }}>
+          <p className="text-2xl font-black text-green-600 tabular-nums">{statsTF.nb}</p>
           <p className="text-xs text-gray-400 mt-0.5">Terrains TF</p>
           {statsTF.verse > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(statsTF.verse)}</p>}
         </div>
-        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-          <p className="text-base font-black text-green-700">{formatCurrency(totalVerse)}</p>
+        <div className="animate-fade-in-up bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 transition-all duration-200 hover:shadow-md" style={{ animationDelay: '120ms' }}>
+          <p className="text-base font-black text-green-700 tabular-nums">{formatCurrency(totalVerse)}</p>
           <p className="text-xs text-gray-500 mt-0.5">Total encaissé</p>
           <p className="text-xs text-gray-400 mt-1">{(stats.nb_simples) + statsTF.nb} dossier{(stats.nb_simples + statsTF.nb) > 1 ? 's' : ''}</p>
         </div>
@@ -568,7 +568,7 @@ export default function TerrainsPage() {
               const pct = s.prix_total > 0 ? Math.round((tv / s.prix_total) * 100) : 0;
               return (
                 <div key={s.id}
-                  className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-md hover:border-green-200 transition-all"
+                  className="bg-white rounded-2xl border border-emerald-100 p-4 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-green-200 transition-all duration-200"
                   onClick={() => setSelectedTF(s)}
                 >
                   <div className="flex items-start justify-between mb-3">
