@@ -70,33 +70,24 @@ export async function fetchMembres(): Promise<Membre[]> {
   }));
 }
 
-export async function fetchNextMembreId(): Promise<string> {
-  const { data } = await supabase
-    .from('membres')
-    .select('id_membre')
-    .order('id_membre', { ascending: false })
-    .limit(1)
-    .single();
-  if (!data) return 'SN001';
-  const num = parseInt(data.id_membre.replace('SN', ''), 10);
-  return `SN${String(num + 1).padStart(3, '0')}`;
-}
-
 export async function insertMembre(
-  data: Pick<Membre, 'id_membre' | 'nom' | 'prenom' | 'telephone' | 'email' | 'statut' | 'photo_url'>
+  data: Pick<Membre, 'nom' | 'prenom' | 'telephone' | 'email' | 'ville' | 'pays' | 'statut' | 'photo_url'>
 ) {
+  // id_membre n'est jamais transmis : il est généré en base par un trigger
+  // (séquence membres_id_membre_seq), ce qui évite les collisions entre
+  // écritures concurrentes et n'a plus de raison d'être calculé côté client.
   const { data: row, error } = await supabase
     .from('membres')
     .insert(data)
     .select()
     .single();
   if (error) throw error;
-  return row;
+  return row as Membre;
 }
 
 export async function updateMembre(
   id: string,
-  data: Partial<Pick<Membre, 'nom' | 'prenom' | 'telephone' | 'email' | 'statut' | 'photo_url'>>
+  data: Partial<Pick<Membre, 'nom' | 'prenom' | 'telephone' | 'email' | 'ville' | 'pays' | 'statut' | 'photo_url'>>
 ) {
   const { data: row, error } = await supabase
     .from('membres')

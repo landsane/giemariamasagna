@@ -10,7 +10,7 @@ import Spinner from '@/components/Spinner';
 import MembreFormModal from '@/components/MembreFormModal';
 import ImportModal from '@/components/ImportModal';
 import MembreDetailModal from '@/components/MembreDetailModal';
-import { formatCurrency, formatDate, localisationSouscription } from '@/lib/utils';
+import { formatCurrency, formatDate, localisationSouscription, infosMembre } from '@/lib/utils';
 
 type Filtre = 'tous' | 'terrain_simple' | 'terrain_tf' | 'logement_f2' | 'logement_f3' | 'les_deux';
 
@@ -130,6 +130,7 @@ function MembreCard({
           <div className="flex items-start justify-between gap-1">
             <div className="min-w-0">
               <p className="text-sm font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
+              <p className="text-xs text-gray-400 truncate">{infosMembre(membre) || 'Aucune information de contact'}</p>
             </div>
             <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
               <button
@@ -167,9 +168,6 @@ function MembreCard({
             </div>
           </div>
           <div className="mt-1.5 flex flex-wrap gap-1">
-            {membre.telephone && (
-              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{membre.telephone}</span>
-            )}
             <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
               {formatDate(membre.created_at)}
             </span>
@@ -242,7 +240,8 @@ export default function MembresPage() {
       if (tab === 'inactif' && m.statut === 'actif') return false;
       const q = search.toLowerCase();
       const ok = !q || m.nom.toLowerCase().includes(q) || m.prenom.toLowerCase().includes(q) ||
-                 (m.telephone ?? '').includes(q);
+                 (m.telephone ?? '').includes(q) ||
+                 (m.ville ?? '').toLowerCase().includes(q) || (m.pays ?? '').toLowerCase().includes(q);
       const f = tab === 'inactif' ? true :
         filtre === 'tous'           ? true :
         filtre === 'terrain_simple' ? sets.stIds.has(m.id) :
@@ -329,7 +328,7 @@ export default function MembresPage() {
 
       {/* Recherche + filtres */}
       <div className="space-y-2">
-        <input type="text" placeholder="Rechercher par nom, prénom ou téléphone…"
+        <input type="text" placeholder="Rechercher par nom, prénom, téléphone, ville ou pays…"
           value={search} onChange={e => setSearch(e.target.value)}
           className="w-full text-sm border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-green-400 placeholder:text-gray-300 bg-white"
         />

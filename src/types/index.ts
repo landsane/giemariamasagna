@@ -1,11 +1,13 @@
 // ─── Membres ────────────────────────────────────────────────────────────────
 export interface Membre {
   id: string;
-  id_membre: string; // SN001, SN002, …
+  id_membre: string; // SN001, SN002, … — généré côté base, jamais saisi ni affiché
   nom: string;
   prenom: string;
   telephone?: string;
   email?: string;
+  ville?: string;
+  pays?: string;
   photo_url?: string;
   statut: 'actif' | 'inactif';
   modules: ('terrains' | 'logements')[]; // modules souscrits

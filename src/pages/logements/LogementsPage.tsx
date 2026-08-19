@@ -65,7 +65,7 @@ import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
 import NouveauDossierModal from '@/components/NouveauDossierModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, infosMembre } from '@/lib/utils';
 
 function statutVariant(statut: SouscriptionLogement['statut']) {
   return statut === 'livre' ? 'green' : statut === 'attribue' ? 'blue' : statut === 'valide' ? 'purple' : 'amber';
@@ -118,7 +118,7 @@ function DetailLogement({
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
-              {membre?.id_membre} · {LABELS_TYPE_BIEN[souscription.type_villa]} · {souscription.titre}
+              {[infosMembre(membre), `${LABELS_TYPE_BIEN[souscription.type_villa]} · ${souscription.titre}`].filter(Boolean).join(' · ')}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -257,7 +257,7 @@ function DossierCard({ s, membres, offres, onSelect }: { s: SouscriptionLogement
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="text-sm font-bold text-gray-900">{membre?.prenom} {membre?.nom}</p>
-          <p className="text-xs text-gray-400">{membre?.id_membre}</p>
+          <p className="text-xs text-gray-400">{infosMembre(membre) || '—'}</p>
         </div>
         <Badge variant={statutVariant(s.statut)}>{statutLabel(s.statut)}</Badge>
       </div>
@@ -326,7 +326,9 @@ export default function LogementsPage() {
         !q ||
         (membre?.nom ?? '').toLowerCase().includes(q) ||
         (membre?.prenom ?? '').toLowerCase().includes(q) ||
-        (membre?.id_membre ?? '').toLowerCase().includes(q);
+        (membre?.ville ?? '').toLowerCase().includes(q) ||
+        (membre?.pays ?? '').toLowerCase().includes(q) ||
+        (membre?.telephone ?? '').toLowerCase().includes(q);
       return matchSearch &&
         (filtreStatut === 'tous' || s.statut === filtreStatut) &&
         (filtreType   === 'tous' || s.type_villa === filtreType);

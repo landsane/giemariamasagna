@@ -9,7 +9,7 @@ import {
   fetchPaiementsTerrainBySouscription, fetchPaiementsLogementBySouscription,
   deletePaiementTerrain, deletePaiementLogement,
 } from '@/lib/queries';
-import { formatCurrency, formatDate, titreAvecSurface } from '@/lib/utils';
+import { formatCurrency, formatDate, titreAvecSurface, infosMembre } from '@/lib/utils';
 import Badge from './Badge';
 import ProgressBar from './ProgressBar';
 import Spinner from './Spinner';
@@ -309,7 +309,7 @@ export default function MembreDetailModal({ membre, souscTerrains, souscLogement
           <div className="min-w-0">
             <p className="font-black text-gray-900 truncate">{membre.prenom} {membre.nom}</p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {membre.id_membre}{membre.telephone ? ` · ${membre.telephone}` : ''}
+              {infosMembre(membre) || 'Aucune information de contact'}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none flex-shrink-0 ml-3">&times;</button>

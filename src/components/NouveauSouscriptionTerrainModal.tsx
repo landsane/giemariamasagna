@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Membre, Offre } from '@/types';
 import { insertSouscriptionTerrain } from '@/lib/queries';
-import { formatCurrency, titreAvecSurface } from '@/lib/utils';
+import { formatCurrency, titreAvecSurface, infosMembre } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -118,7 +118,7 @@ export default function NouveauSouscriptionTerrainModal({ membres, offres, onClo
             >
               <option value="">— Sélectionner un membre —</option>
               {membresActifs.map(m => (
-                <option key={m.id} value={m.id}>{m.id_membre} · {m.prenom} {m.nom}</option>
+                <option key={m.id} value={m.id}>{m.prenom} {m.nom}{infosMembre(m) ? ` — ${infosMembre(m)}` : ''}</option>
               ))}
             </select>
           </div>

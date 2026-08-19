@@ -3,7 +3,7 @@ import { MapPin, Tag } from 'lucide-react';
 import type { Membre, TypeBien, Offre } from '@/types';
 import { PRIX_F2, PRIX_F3, TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
 import { insertSouscriptionLogement } from '@/lib/queries';
-import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre, titreAvecSurface } from '@/lib/utils';
+import { formatCurrency, calculerAcompte, calculerMensualite, siteFromOffre, titreAvecSurface, infosMembre } from '@/lib/utils';
 
 interface Props {
   membres: Membre[];
@@ -222,7 +222,7 @@ export default function NouveauDossierModal({ membres, offres, initialType, onCl
             >
               <option value="">— Sélectionner un membre —</option>
               {membresActifs.map(m => (
-                <option key={m.id} value={m.id}>{m.id_membre} · {m.prenom} {m.nom}</option>
+                <option key={m.id} value={m.id}>{m.prenom} {m.nom}{infosMembre(m) ? ` — ${infosMembre(m)}` : ''}</option>
               ))}
             </select>
           </div>

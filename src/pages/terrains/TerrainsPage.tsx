@@ -19,7 +19,7 @@ import NouveauDossierTerrainsModal from '@/components/NouveauDossierTerrainsModa
 import ImportModal from '@/components/ImportModal';
 import VersementTerrainModal from '@/components/VersementTerrainModal';
 import VersementLogementModal from '@/components/VersementLogementModal';
-import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, formatSurface } from '@/lib/utils';
+import { formatCurrency, formatDate, calculerAcompte, calculerMensualite, localisationSouscription, pourcentageAcompte, titreAvecSurface, formatSurface, infosMembre } from '@/lib/utils';
 
 // ─── Carte offre active (terrain simple) ─────────────────────────────────────
 function OffreSimpleCard({ offre }: { offre: Offre }) {
@@ -133,8 +133,10 @@ function DetailSouscription({
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
-              {membre?.id_membre} · {souscription.nb_terrains} terrain{souscription.nb_terrains > 1 ? 's' : ''}
-              {offre?.surface_m2 ? ` · ${formatSurface(offre.surface_m2)}/parcelle` : ''}
+              {[
+                infosMembre(membre),
+                `${souscription.nb_terrains} terrain${souscription.nb_terrains > 1 ? 's' : ''}${offre?.surface_m2 ? ` · ${formatSurface(offre.surface_m2)}/parcelle` : ''}`,
+              ].filter(Boolean).join(' · ')}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -265,7 +267,7 @@ function DetailTerrainTF({
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
-              {membre?.id_membre} · Terrain TF · {souscription.titre}
+              {[infosMembre(membre), `Terrain TF · ${souscription.titre}`].filter(Boolean).join(' · ')}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -394,7 +396,7 @@ function SouscriptionRow({
     >
       <td className="py-3 px-4">
         <p className="text-sm font-semibold text-gray-900">{membre?.prenom} {membre?.nom}</p>
-        <p className="text-xs text-gray-400">{membre?.id_membre}</p>
+        <p className="text-xs text-gray-400">{infosMembre(membre) || '—'}</p>
       </td>
       <td className="py-3 px-4 text-sm text-gray-700 text-center font-medium">{s.nb_terrains}</td>
       <td className="py-3 px-4 text-sm text-green-700 font-semibold">{formatCurrency(s.montant_verse)}</td>
@@ -459,7 +461,9 @@ export default function TerrainsPage() {
         !q ||
         (membre?.nom ?? '').toLowerCase().includes(q) ||
         (membre?.prenom ?? '').toLowerCase().includes(q) ||
-        (membre?.id_membre ?? '').toLowerCase().includes(q);
+        (membre?.ville ?? '').toLowerCase().includes(q) ||
+        (membre?.pays ?? '').toLowerCase().includes(q) ||
+        (membre?.telephone ?? '').toLowerCase().includes(q);
       const matchStatut = filtreStatut === 'tous' || s.statut === filtreStatut;
       return matchSearch && matchStatut;
     });
@@ -473,7 +477,9 @@ export default function TerrainsPage() {
       const m = membres.find(mb => mb.id === s.membre_id);
       return (m?.nom ?? '').toLowerCase().includes(q) ||
              (m?.prenom ?? '').toLowerCase().includes(q) ||
-             (m?.id_membre ?? '').toLowerCase().includes(q);
+             (m?.ville ?? '').toLowerCase().includes(q) ||
+             (m?.pays ?? '').toLowerCase().includes(q) ||
+             (m?.telephone ?? '').toLowerCase().includes(q);
     });
   }, [souscriptionsTF, membres, search]);
 
@@ -635,7 +641,9 @@ export default function TerrainsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900 truncate">{m?.prenom} {m?.nom}</p>
-                          <p className="text-xs text-gray-400">{m?.id_membre} · {s.nb_terrains} terrain{s.nb_terrains > 1 ? 's' : ''}</p>
+                          <p className="text-xs text-gray-400">
+                            {[infosMembre(m), `${s.nb_terrains} terrain${s.nb_terrains > 1 ? 's' : ''}`].filter(Boolean).join(' · ')}
+                          </p>
                           <ProgressBar value={s.pourcentage} className="mt-1" />
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
@@ -706,7 +714,7 @@ export default function TerrainsPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="text-sm font-bold text-gray-900">{m?.prenom} {m?.nom}</p>
-                      <p className="text-xs text-gray-400">{m?.id_membre}</p>
+                      <p className="text-xs text-gray-400">{infosMembre(m) || '—'}</p>
                     </div>
                     <Badge variant="green">Terrain TF</Badge>
                   </div>

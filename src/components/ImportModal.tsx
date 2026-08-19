@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { Download, Upload, CheckCircle, XCircle } from 'lucide-react';
 import type { Membre, Offre } from '@/types';
 import { PRIX_TERRAIN, PRIX_F2, PRIX_F3, TAUX_ACOMPTE, NB_MENSUALITES } from '@/types';
-import { insertMembre, fetchNextMembreId, insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
+import { insertMembre, insertSouscriptionTerrain, insertSouscriptionLogement } from '@/lib/queries';
 import { parseImport, TEMPLATES, COL_HEADERS } from '@/lib/importUtils';
 import type { ImportType } from '@/lib/importUtils';
 
@@ -74,12 +74,9 @@ export default function ImportModal({ type, membres = [], offres = [], onClose, 
 
     try {
       if (type === 'membres') {
-        const firstId = await fetchNextMembreId();
-        let num = parseInt(firstId.replace('SN', ''), 10);
         for (const row of validRows) {
           try {
             await insertMembre({
-              id_membre:  `SN${String(num).padStart(3, '0')}`,
               nom:        row.nom,
               prenom:     row.prenom,
               telephone:  row.extra[0] || undefined,
@@ -87,7 +84,6 @@ export default function ImportModal({ type, membres = [], offres = [], onClose, 
               statut:     'actif',
               photo_url:  undefined,
             });
-            num++;
             success++;
           } catch (e) {
             errors.push(`${row.prenom} ${row.nom} : ${e instanceof Error ? e.message : 'Erreur'}`);

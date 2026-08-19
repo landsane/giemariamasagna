@@ -1,9 +1,21 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { Offre, SiteLogement } from '@/types';
+import type { Membre, Offre, SiteLogement } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Ville, pays et téléphone d'un membre, à afficher systématiquement à côté de
+ * son prénom/nom pour le différencier (l'identifiant SN0xx n'est plus affiché
+ * côté site, il reste un simple numéro interne généré en base).
+ * Ex : "Paris, France · +33 6 58 96 11 60". Chaîne vide si rien de renseigné.
+ */
+export function infosMembre(membre?: Pick<Membre, 'ville' | 'pays' | 'telephone'> | null): string {
+  if (!membre) return '';
+  const lieu = [membre.ville, membre.pays].filter(Boolean).join(', ');
+  return [lieu, membre.telephone].filter(Boolean).join(' · ');
 }
 
 export function formatCurrency(amount: number, currency = 'XOF'): string {

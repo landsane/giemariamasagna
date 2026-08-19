@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import type { Membre } from '@/types';
-import { insertMembre, updateMembre, uploadMembrePhoto, fetchNextMembreId } from '@/lib/queries';
+import { insertMembre, updateMembre, uploadMembrePhoto } from '@/lib/queries';
 import { Camera } from 'lucide-react';
 
 interface Props {
@@ -12,20 +12,17 @@ interface Props {
 export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
   const editing = !!initial;
 
-  const [nextId,    setNextId]    = useState('');
   const [nom,       setNom]       = useState(initial?.nom ?? '');
   const [prenom,    setPrenom]    = useState(initial?.prenom ?? '');
   const [telephone, setTel]       = useState(initial?.telephone ?? '');
   const [email,     setEmail]     = useState(initial?.email ?? '');
+  const [ville,     setVille]     = useState(initial?.ville ?? '');
+  const [pays,      setPays]      = useState(initial?.pays ?? '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPreview] = useState<string>(initial?.photo_url ?? '');
   const [saving,    setSaving]    = useState(false);
   const [error,     setError]     = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!editing) fetchNextMembreId().then(setNextId);
-  }, [editing]);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -34,7 +31,6 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
     setPreview(URL.createObjectURL(file));
   }
 
-  const idAffiche = editing ? initial!.id_membre : (nextId || '…');
   const initiales = prenom && nom ? `${prenom[0]}${nom[0]}`.toUpperCase() : '??';
 
   async function handleSubmit() {
@@ -43,31 +39,27 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
     setError('');
 
     try {
-      let photo_url = initial?.photo_url;
-
-      if (photoFile) {
-        const tempId = editing ? initial!.id : idAffiche;
-        photo_url = await uploadMembrePhoto(tempId, photoFile);
-      }
+      const champs = {
+        nom:       nom.trim().toUpperCase(),
+        prenom:    prenom.trim(),
+        telephone: telephone.trim() || undefined,
+        email:     email.trim() || undefined,
+        ville:     ville.trim() || undefined,
+        pays:      pays.trim() || undefined,
+      };
 
       if (editing) {
-        await updateMembre(initial!.id, {
-          nom:       nom.trim().toUpperCase(),
-          prenom:    prenom.trim(),
-          telephone: telephone.trim() || undefined,
-          email:     email.trim() || undefined,
-          photo_url,
-        });
+        let photo_url = initial?.photo_url;
+        if (photoFile) photo_url = await uploadMembrePhoto(initial!.id, photoFile);
+        await updateMembre(initial!.id, { ...champs, photo_url });
       } else {
-        await insertMembre({
-          id_membre: idAffiche,
-          nom:       nom.trim().toUpperCase(),
-          prenom:    prenom.trim(),
-          telephone: telephone.trim() || undefined,
-          email:     email.trim() || undefined,
-          statut:    'actif',
-          photo_url,
-        });
+        // La photo ne peut être nommée qu'une fois l'id (généré en base) connu :
+        // on crée d'abord le membre, puis on rattache la photo si besoin.
+        const row = await insertMembre({ ...champs, statut: 'actif' });
+        if (photoFile) {
+          const photo_url = await uploadMembrePhoto(row.id, photoFile);
+          await updateMembre(row.id, { photo_url });
+        }
       }
       onSaved();
       onClose();
@@ -137,6 +129,27 @@ export default function MembreFormModal({ initial, onClose, onSaved }: Props) {
               className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
+
+          {/* Ville + Pays de résidence */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ville</label>
+              <input type="text" value={ville} onChange={e => setVille(e.target.value)}
+                placeholder="Dakar"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pays</label>
+              <input type="text" value={pays} onChange={e => setPays(e.target.value)}
+                placeholder="Sénégal"
+                className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
+              />
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-400 -mt-2">
+            Ville et pays de résidence — affichés partout à côté du nom du membre pour le différencier.
+          </p>
 
           {/* Email */}
           <div>
