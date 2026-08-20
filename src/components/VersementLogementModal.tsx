@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import type { SouscriptionLogement, Membre, ModePayment, TypePaiementLogement, PaiementLogement } from '@/types';
-import { LABELS_MODE } from '@/types';
+import type { SouscriptionLogement, Membre, ModePayment, TypePaiementLogement, PaiementLogement, Offre } from '@/types';
+import { LABELS_MODE, NB_MENSUALITES } from '@/types';
 import { insertPaiementLogement, updatePaiementLogement } from '@/lib/queries';
 import { formatCurrency } from '@/lib/utils';
 
 interface Props {
   souscription: SouscriptionLogement;
   membre: Membre | undefined;
+  offre?: Offre;
   initialType: TypePaiementLogement;
   initial?: PaiementLogement;
   onClose: () => void;
@@ -15,8 +16,9 @@ interface Props {
 
 const MODES: ModePayment[] = ['wave', 'orange_money', 'banque', 'autres'];
 
-export default function VersementLogementModal({ souscription, membre, initialType, initial, onClose, onSaved }: Props) {
+export default function VersementLogementModal({ souscription, membre, offre, initialType, initial, onClose, onSaved }: Props) {
   const editing = !!initial;
+  const nbMensualitesTotal = offre?.nb_mensualites ?? NB_MENSUALITES;
   const resteAcompte = Math.max(0, souscription.acompte_requis - souscription.acompte_verse);
 
   const [typePaiement, setTypePaiement] = useState<TypePaiementLogement>(initial?.type_paiement ?? initialType);
@@ -94,7 +96,7 @@ export default function VersementLogementModal({ souscription, membre, initialTy
                   <p className="text-xs text-gray-400 mt-0.5">
                     {t === 'acompte'
                       ? `${formatCurrency(souscription.acompte_verse)} / ${formatCurrency(souscription.acompte_requis)}`
-                      : `${souscription.nb_mensualites_payees} / 120 payées`}
+                      : `${souscription.nb_mensualites_payees} / ${nbMensualitesTotal} payées`}
                   </p>
                 </button>
               ))}

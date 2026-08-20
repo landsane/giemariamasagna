@@ -3,7 +3,7 @@ import { MoreVertical, Pencil, Archive, ArchiveRestore, Upload } from 'lucide-re
 import { useAsync } from '@/hooks/useAsync';
 import { fetchMembres, fetchSouscriptionsTerrain, fetchSouscriptionsLogement, fetchOffres, updateMembre } from '@/lib/queries';
 import type { Membre, SouscriptionTerrain, SouscriptionLogement, Offre } from '@/types';
-import { LABELS_SITE } from '@/types';
+import { LABELS_SITE, NB_MENSUALITES } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
@@ -85,7 +85,7 @@ function BlocLogement({ s, offre }: { s: SouscriptionLogement; offre?: Offre }) 
       </div>
       <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
         <span>Acompte {acomptePct >= 100 ? '✓' : `${acomptePct}%`}</span>
-        <span className="text-right">{s.nb_mensualites_payees}/120 mens.</span>
+        <span className="text-right">{s.nb_mensualites_payees}/{offre?.nb_mensualites ?? NB_MENSUALITES} mens.</span>
       </div>
       <ProgressBar value={totalPct} />
       <div className="flex justify-between text-xs">

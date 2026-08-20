@@ -9,7 +9,7 @@ import {
   fetchOffres,
 } from '@/lib/queries';
 import type { Membre, SouscriptionLogement, PaiementLogement, TypeBien, Offre, TypePaiementLogement } from '@/types';
-import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN } from '@/types';
+import { LABELS_MODE, LABELS_SITE, LABELS_TYPE_BIEN, NB_MENSUALITES } from '@/types';
 import Badge from '@/components/Badge';
 import ProgressBar from '@/components/ProgressBar';
 import Spinner from '@/components/Spinner';
@@ -59,7 +59,8 @@ function DetailLogement({
   const acomptePct     = souscription.acompte_requis > 0
     ? Math.round((souscription.acompte_verse / souscription.acompte_requis) * 100)
     : 0;
-  const mensualitesPct = Math.round((souscription.nb_mensualites_payees / 120) * 100);
+  const nbMensualitesTotal = offre?.nb_mensualites ?? NB_MENSUALITES;
+  const mensualitesPct = Math.round((souscription.nb_mensualites_payees / nbMensualitesTotal) * 100);
   const totalVerse     = souscription.acompte_verse + souscription.nb_mensualites_payees * souscription.mensualite;
   const totalPct       = souscription.prix_total > 0 ? Math.round((totalVerse / souscription.prix_total) * 100) : 0;
 
@@ -119,7 +120,7 @@ function DetailLogement({
         <div className="p-6 border-b border-gray-50 space-y-3">
           <div className="flex justify-between">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mensualités</p>
-            <span className="text-xs text-gray-400">{souscription.nb_mensualites_payees} / 120</span>
+            <span className="text-xs text-gray-400">{souscription.nb_mensualites_payees} / {nbMensualitesTotal}</span>
           </div>
           <ProgressBar value={mensualitesPct} />
           <div className="grid grid-cols-2 gap-3 text-xs">
@@ -184,6 +185,7 @@ function DetailLogement({
         <VersementLogementModal
           souscription={souscription}
           membre={membre}
+          offre={offre}
           initialType={versementType}
           onClose={() => setVersementType(null)}
           onSaved={() => { refetch(); onPaiementAdded(); }}
@@ -227,7 +229,7 @@ function DossierCard({ s, membres, offres, onSelect }: { s: SouscriptionLogement
         </div>
         <div className="flex justify-between">
           <span>Mensualités</span>
-          <span className="font-semibold">{s.nb_mensualites_payees} / 120</span>
+          <span className="font-semibold">{s.nb_mensualites_payees} / {offre?.nb_mensualites ?? NB_MENSUALITES}</span>
         </div>
       </div>
       <div className="flex justify-between text-xs text-gray-400 mb-1">

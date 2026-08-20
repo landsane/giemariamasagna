@@ -298,6 +298,7 @@ function DetailTerrainTF({
         <VersementLogementModal
           souscription={souscription}
           membre={membre}
+          offre={offre}
           initialType={versementType}
           onClose={() => setVersementType(null)}
           onSaved={() => { refetch(); onPaiementAdded(); }}
