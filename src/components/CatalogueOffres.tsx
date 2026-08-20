@@ -13,9 +13,9 @@ import { formatCurrency, calculerAcompte, calculerMensualite, formatSurface, tit
 // des sections viennent de SECTIONS ci-dessous.
 
 const SECTIONS: { type: TypeOffre; label: string; color: string; desc: string }[] = [
-  { type: 'terrain_simple', label: 'Terrains Simples',  color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
-  { type: 'terrain_tf',     label: 'Terrains TF',       color: 'text-green-600',  desc: 'Titre Foncier · Le Millénium 7SD' },
-  { type: 'logement',       label: 'Logements Sociaux', color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
+  { type: 'terrain_simple', label: 'Terrains Simples',    color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
+  { type: 'terrain_tf',     label: 'Terrains Viabilisés', color: 'text-green-600',  desc: 'Terrain viabilisé · Le Millénium 7SD' },
+  { type: 'logement',       label: 'Logements Sociaux',   color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
 ];
 
 const DEFAULTS: Record<TypeOffre, { taux_acompte: number; nb_mensualites: number }> = {
@@ -25,20 +25,51 @@ const DEFAULTS: Record<TypeOffre, { taux_acompte: number; nb_mensualites: number
 };
 
 const ALL_TYPES: { id: TypeOffre; label: string; desc: string; color: string }[] = [
-  { id: 'terrain_simple', label: 'Terrain Simple',  desc: 'Parcelle GIE · mensualités fixes',      color: 'border-blue-400 bg-blue-50' },
-  { id: 'terrain_tf',     label: 'Terrain TF',      desc: 'Titre Foncier · acompte + mensualités', color: 'border-green-400 bg-green-50' },
-  { id: 'logement',       label: 'Logement Social', desc: 'Villa F2 / F3 · acompte + 120 mens.',    color: 'border-purple-400 bg-purple-50' },
+  { id: 'terrain_simple', label: 'Terrain Simple',     desc: 'Parcelle GIE · mensualités fixes',        color: 'border-blue-400 bg-blue-50' },
+  { id: 'terrain_tf',     label: 'Terrain Viabilisé',  desc: 'Terrain viabilisé · acompte + mensualités', color: 'border-green-400 bg-green-50' },
+  { id: 'logement',       label: 'Logement Social',    desc: 'Villa F2 / F3 · acompte + 120 mens.',      color: 'border-purple-400 bg-purple-50' },
 ];
+
+// Vocabulaire du catalogue : "lotissement" sur Terrains (un lotissement =
+// un ensemble de terrains), "offre" sur Logements (moins pertinent pour des
+// villas F2/F3). N'affecte que le texte, pas les données.
+const COPY: Record<'offre' | 'lotissement', {
+  nouveau: string; creerPremier: string; aucunActif: string; aucunInactif: string;
+  titreNouveau: string; titreEdit: string; boutonCreer: string; typeLabel: string;
+}> = {
+  offre: {
+    nouveau: '+ Nouvelle offre',
+    creerPremier: 'Créer la première offre',
+    aucunActif: 'Aucune offre active',
+    aucunInactif: 'Aucune offre inactive',
+    titreNouveau: 'Nouvelle offre',
+    titreEdit: "Modifier l'offre",
+    boutonCreer: "Créer l'offre",
+    typeLabel: "Type d'offre",
+  },
+  lotissement: {
+    nouveau: '+ Nouveau lotissement',
+    creerPremier: 'Créer le premier lotissement',
+    aucunActif: 'Aucun lotissement actif',
+    aucunInactif: 'Aucun lotissement inactif',
+    titreNouveau: 'Nouveau lotissement',
+    titreEdit: 'Modifier le lotissement',
+    boutonCreer: 'Créer le lotissement',
+    typeLabel: 'Type de lotissement',
+  },
+};
 
 // ─── Formulaire offre ─────────────────────────────────────────────────────────
 interface FormulaireProps {
   initial?: Offre;
   allowedTypes: TypeOffre[];
+  noun: 'offre' | 'lotissement';
   onClose: () => void;
   onSaved: () => void;
 }
 
-function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: FormulaireProps) {
+function FormulaireOffre({ initial, allowedTypes, noun, onClose, onSaved }: FormulaireProps) {
+  const copy = COPY[noun];
   const editing = !!initial;
   const [type,          setType]         = useState<TypeOffre>(initial?.type ?? allowedTypes[0]);
   const [sousType,      setSousType]     = useState<'F2' | 'F3' | ''>(initial?.sous_type ?? '');
@@ -116,7 +147,7 @@ function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: Formulaire
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:my-4 max-h-[95dvh] overflow-y-auto animate-scale-in" onClick={e => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-emerald-100 flex items-center justify-between">
           <div>
-            <h3 className="font-black text-gray-900">{editing ? 'Modifier l\'offre' : 'Nouvelle offre'}</h3>
+            <h3 className="font-black text-gray-900">{editing ? copy.titreEdit : copy.titreNouveau}</h3>
             <p className="text-xs text-gray-400 mt-0.5">Programme PICLOM · GIE Mariama SAGNA</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -126,7 +157,7 @@ function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: Formulaire
           {/* Type (masqué si un seul type possible dans ce catalogue) */}
           {TYPES.length > 1 && (
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Type d'offre</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{copy.typeLabel}</p>
               <div className={`grid gap-2 ${TYPES.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {TYPES.map(t => (
                   <button key={t.id} onClick={() => handleTypeChange(t.id)}
@@ -158,9 +189,9 @@ function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: Formulaire
 
           {/* Nom */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom de l'offre *</label>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom {noun === 'lotissement' ? 'du lotissement' : "de l'offre"} *</label>
             <input type="text" value={nom} onChange={e => setNom(e.target.value)}
-              placeholder={type === 'terrain_simple' ? 'Terrain Simple – Dakar' : type === 'logement' ? 'Villa F2 – Ndoyenne 01' : 'Terrain TF – Sébikhotane'}
+              placeholder={type === 'terrain_simple' ? 'Terrain Simple – Dakar' : type === 'logement' ? 'Villa F2 – Ndoyenne 01' : 'Terrain Viabilisé – Sébikhotane'}
               className="mt-1 w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-emerald-400 placeholder:text-gray-300"
             />
           </div>
@@ -273,7 +304,7 @@ function FormulaireOffre({ initial, allowedTypes, onClose, onSaved }: Formulaire
           </button>
           <button onClick={handleSubmit} disabled={saving || prixUnitaire <= 0 || !nom.trim()}
             className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
-            {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer l\'offre'}
+            {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : copy.boutonCreer}
           </button>
         </div>
       </div>
@@ -373,9 +404,12 @@ interface CatalogueProps {
   offres: Offre[];
   loading: boolean;
   onChanged: () => void;
+  /** Vocabulaire affiché : "lotissement" sur Terrains, "offre" sur Logements. */
+  noun?: 'offre' | 'lotissement';
 }
 
-export default function CatalogueOffres({ types, offres, loading, onChanged }: CatalogueProps) {
+export default function CatalogueOffres({ types, offres, loading, onChanged, noun = 'offre' }: CatalogueProps) {
+  const copy = COPY[noun];
   const [showForm, setShowForm]     = useState(false);
   const [editing, setEditing]       = useState<Offre | null>(null);
   const [tab, setTab]               = useState<'active' | 'inactive'>('active');
@@ -432,7 +466,7 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
           onClick={() => { setEditing(null); setShowForm(true); }}
           className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap shadow-sm"
         >
-          + Nouvelle offre
+          {copy.nouveau}
         </button>
       </div>
 
@@ -456,13 +490,13 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
       {loading ? <Spinner /> : affichees.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <p className="text-sm text-gray-400">
-            {tab === 'active' ? 'Aucune offre active' : 'Aucune offre inactive'}
+            {tab === 'active' ? copy.aucunActif : copy.aucunInactif}
             {filtreType !== 'tous' ? ` · ${LABELS_TYPE_OFFRE[filtreType]}` : ''}
           </p>
           {tab === 'active' && (
             <button onClick={() => { setEditing(null); setShowForm(true); }}
               className="mt-3 text-sm text-green-600 hover:underline">
-              Créer la première offre
+              {copy.creerPremier}
             </button>
           )}
         </div>
@@ -502,6 +536,7 @@ export default function CatalogueOffres({ types, offres, loading, onChanged }: C
         <FormulaireOffre
           initial={editing ?? undefined}
           allowedTypes={types}
+          noun={noun}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSaved={onChanged}
         />

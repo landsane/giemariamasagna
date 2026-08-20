@@ -28,7 +28,7 @@ function statutLabel(statut: SouscriptionLogement['statut']) {
 
 function typeBadge(type: TypeBien) {
   if (type === 'F3')      return <Badge variant="purple">Villa F3</Badge>;
-  if (type === 'terrain') return <Badge variant="green">Terrain TF</Badge>;
+  if (type === 'terrain') return <Badge variant="green">Terrain Viabilisé</Badge>;
   return                         <Badge variant="blue">Villa F2</Badge>;
 }
 

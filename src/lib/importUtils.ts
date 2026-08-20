@@ -31,7 +31,7 @@ export const TEMPLATES: Record<ImportType, { header: string; example: string }> 
   },
   logements: {
     header:  'prenom,nom,type_villa,date_souscription',
-    example: 'Ibrahima,DIALLO,F2,2024-07-15\nFatou,FALL,F3,2024-08-01\nMoussa,SOW,TF,2024-09-01',
+    example: 'Ibrahima,DIALLO,F2,2024-07-15\nFatou,FALL,F3,2024-08-01\nMoussa,SOW,VIABILISE,2024-09-01',
   },
 };
 
@@ -68,8 +68,8 @@ export function parseImport(text: string, type: ImportType): RowResult[] {
 
     // logements
     const raw = (cells[2] ?? '').trim().toUpperCase();
-    const validTypes = ['F2', 'F3', 'TF', 'TERRAIN'];
-    if (!validTypes.includes(raw)) errors.push('Type invalide — utiliser F2, F3 ou TF');
+    const validTypes = ['F2', 'F3', 'TF', 'TERRAIN', 'VIABILISE', 'VIABILISÉ'];
+    if (!validTypes.includes(raw)) errors.push('Type invalide — utiliser F2, F3 ou VIABILISE');
     const date = cells[3]?.trim() || today();
     return { prenom, nom, extra: [raw || '', date], errors };
   });

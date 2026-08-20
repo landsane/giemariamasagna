@@ -178,7 +178,7 @@ function SectionLogement({
 
   const titre = offre ? titreAvecSurface(offre.nom, offre.surface_m2) : (
     isTerrainTF
-      ? `Terrain TF · ${LABELS_SITE[souscription.site].split('–')[0].trim()}`
+      ? `Terrain Viabilisé · ${LABELS_SITE[souscription.site].split('–')[0].trim()}`
       : `Villa ${souscription.type_villa} · ${LABELS_SITE[souscription.site].split('–')[0].trim()} · ${souscription.titre}`
   );
 

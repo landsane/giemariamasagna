@@ -111,7 +111,7 @@ export interface Offre {
 
 export const LABELS_TYPE_OFFRE: Record<TypeOffre, string> = {
   terrain_simple: 'Terrain Simple',
-  terrain_tf:     'Terrain TF',
+  terrain_tf:     'Terrain Viabilisé',
   logement:       'Logement Social',
 };
 
@@ -125,7 +125,7 @@ export const NB_MENSUALITES = 120;
 export const LABELS_TYPE_BIEN: Record<TypeBien, string> = {
   F2:      'Villa F2',
   F3:      'Villa F3',
-  terrain: 'Terrain TF',
+  terrain: 'Terrain Viabilisé',
 };
 
 export const LABELS_VERSEMENT: Record<number, string> = {

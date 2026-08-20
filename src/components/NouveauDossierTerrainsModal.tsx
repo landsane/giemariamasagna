@@ -48,7 +48,7 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
 
   async function handleSubmit() {
     if (!membreId)      return setError('Sélectionne un membre.');
-    if (!offreId)       return setError('Sélectionne une offre.');
+    if (!offreId)       return setError('Sélectionne un lotissement.');
     if (prixTotal <= 0) return setError('Le prix total doit être supérieur à 0.');
 
     setSaving(true);
@@ -109,28 +109,28 @@ export default function NouveauDossierTerrainsModal({ membres, offresSimples, of
                 }`}
               >
                 <p className="text-sm font-bold text-gray-900">Terrain Simple</p>
-                <p className="text-xs text-gray-400 mt-0.5">Bail · {offresSimples.length} offre{offresSimples.length > 1 ? 's' : ''}</p>
+                <p className="text-xs text-gray-400 mt-0.5">Bail · {offresSimples.length} lotissement{offresSimples.length > 1 ? 's' : ''}</p>
               </button>
               <button onClick={() => switchBien('tf')}
                 className={`border-2 rounded-xl p-3 text-left transition-all ${
                   bien === 'tf' ? 'border-green-400 bg-green-50' : 'border-gray-100 hover:border-gray-200'
                 }`}
               >
-                <p className="text-sm font-bold text-gray-900">Terrain TF</p>
-                <p className="text-xs text-gray-400 mt-0.5">Titre Foncier · {offresTF.length} offre{offresTF.length > 1 ? 's' : ''}</p>
+                <p className="text-sm font-bold text-gray-900">Terrain Viabilisé</p>
+                <p className="text-xs text-gray-400 mt-0.5">Terrain viabilisé · {offresTF.length} lotissement{offresTF.length > 1 ? 's' : ''}</p>
               </button>
             </div>
           </div>
 
-          {/* ── Offre ── */}
+          {/* ── Lotissement ── */}
           {offres.length === 0 ? (
             <p className="text-sm text-amber-600 bg-amber-50 rounded-xl px-3 py-2">
-              Aucune offre active pour ce type. Crée d'abord une offre dans la section Offres.
+              Aucun lotissement actif pour ce type. Crée d'abord un lotissement dans l'onglet Lotissements.
             </p>
           ) : (
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Offre{offres.length > 1 ? 's' : ''} disponible{offres.length > 1 ? 's' : ''}
+                Lotissement{offres.length > 1 ? 's' : ''} disponible{offres.length > 1 ? 's' : ''}
               </p>
               <div className="space-y-2">
                 {offres.map(o => {

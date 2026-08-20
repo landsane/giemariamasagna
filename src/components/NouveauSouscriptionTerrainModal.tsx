@@ -29,7 +29,7 @@ export default function NouveauSouscriptionTerrainModal({ membres, offres, onClo
 
   async function handleSubmit() {
     if (!membreId)     return setError('Sélectionne un membre.');
-    if (!offreId)      return setError('Sélectionne une offre.');
+    if (!offreId)      return setError('Sélectionne un lotissement.');
     if (nbTerrains < 1) return setError('Au moins 1 parcelle.');
 
     setSaving(true);
@@ -66,7 +66,7 @@ export default function NouveauSouscriptionTerrainModal({ membres, offres, onClo
         <div className="p-6 space-y-5">
           {offres.length > 1 && (
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Offre</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Lotissement</p>
               <div className="space-y-2">
                 {offres.map(o => (
                   <button key={o.id} onClick={() => setOffreId(o.id)}

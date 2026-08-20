@@ -193,7 +193,7 @@ function DetailTerrainTF({
           <div>
             <p className="font-black text-gray-900">{membre?.prenom} {membre?.nom}</p>
             <p className="text-xs text-gray-400">
-              {[infosMembre(membre), `Terrain TF · ${souscription.titre}`].filter(Boolean).join(' · ')}
+              {[infosMembre(membre), 'Terrain Viabilisé'].filter(Boolean).join(' · ')}
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">&times;</button>
@@ -417,14 +417,16 @@ export default function TerrainsPage() {
   const stats = useMemo(() => {
     const list = souscriptions ?? [];
     return {
-      nb_simples:  list.length,
+      nb_simples:  list.length, // nombre de dossiers (souscriptions) — pas de terrains
+      nb_terrains_simples: list.reduce((a, s) => a + s.nb_terrains, 0),
       verse_simple: list.reduce((a, s) => a + s.montant_verse, 0),
       nb_soldes:    list.filter(s => s.statut === 'solde').length,
     };
   }, [souscriptions]);
 
   const statsTF = useMemo(() => ({
-    nb:    souscriptionsTF.length,
+    nb:           souscriptionsTF.length, // nombre de dossiers (souscriptions) — pas de terrains
+    nb_terrains:  souscriptionsTF.reduce((a, s) => a + s.nb_terrains, 0),
     verse: souscriptionsTF.reduce((a, s) => a + s.acompte_verse + s.nb_mensualites_payees * s.mensualite, 0),
   }), [souscriptionsTF]);
 
@@ -454,7 +456,7 @@ export default function TerrainsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-gray-900">Terrains</h2>
-          <p className="text-sm text-gray-400 mt-1">Simples · Titre Foncier · GIE Mariama SAGNA</p>
+          <p className="text-sm text-gray-400 mt-1">Simples · Viabilisés · GIE Mariama SAGNA</p>
         </div>
         <button onClick={refetchAll} className="text-xs text-gray-400 hover:text-green-600 transition-colors">
           Actualiser
@@ -469,7 +471,7 @@ export default function TerrainsPage() {
             tab === 'offres' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Offres ({offresTerrain.length})
+          Lotissements ({offresTerrain.length})
         </button>
         <button
           onClick={() => setTab('souscriptions')}
@@ -487,6 +489,7 @@ export default function TerrainsPage() {
           offres={toutesOffres ?? []}
           loading={lo}
           onChanged={ro}
+          noun="lotissement"
         />
       )}
 
@@ -495,13 +498,13 @@ export default function TerrainsPage() {
       {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3">
         <div className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-4 transition-all duration-200 hover:shadow-md hover:border-emerald-200">
-          <p className="text-2xl font-black text-blue-600 tabular-nums">{stats.nb_simples}</p>
+          <p className="text-2xl font-black text-blue-600 tabular-nums">{stats.nb_terrains_simples}</p>
           <p className="text-xs text-gray-400 mt-0.5">Terrains Simples</p>
           {stats.verse_simple > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(stats.verse_simple)}</p>}
         </div>
         <div className="animate-fade-in-up bg-white rounded-xl border border-emerald-100 p-4 transition-all duration-200 hover:shadow-md hover:border-emerald-200" style={{ animationDelay: '60ms' }}>
-          <p className="text-2xl font-black text-green-600 tabular-nums">{statsTF.nb}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Terrains TF</p>
+          <p className="text-2xl font-black text-green-600 tabular-nums">{statsTF.nb_terrains}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Terrains Viabilisés</p>
           {statsTF.verse > 0 && <p className="text-xs font-semibold text-gray-700 mt-2">{formatCurrency(statsTF.verse)}</p>}
         </div>
         <div className="animate-fade-in-up bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4 transition-all duration-200 hover:shadow-md" style={{ animationDelay: '120ms' }}>
@@ -524,7 +527,7 @@ export default function TerrainsPage() {
           {([
             { id: 'tous',   label: `Tous (${stats.nb_simples + statsTF.nb})` },
             { id: 'simple', label: `Simples (${stats.nb_simples})` },
-            { id: 'tf',     label: `TF (${statsTF.nb})` },
+            { id: 'tf',     label: `Viabilisés (${statsTF.nb})` },
           ] as { id: FiltreCategorie; label: string }[]).map(f => (
             <button key={f.id} onClick={() => setFiltreCategorie(f.id)}
               className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
@@ -549,15 +552,15 @@ export default function TerrainsPage() {
         </div>
       </div>
 
-      {/* ── Section Terrains TF ── */}
+      {/* ── Section Terrains Viabilisés ── */}
       {filtreCategorie !== 'simple' && (
       <div className="space-y-4">
         {filtreCategorie === 'tous' && (
-          <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains TF</p>
+          <p className="text-xs font-bold text-green-600 uppercase tracking-wide">Terrains Viabilisés</p>
         )}
         {ltf ? <Spinner /> : filteredTF.length === 0 ? (
           <div className="bg-white rounded-2xl border border-emerald-100 p-10 text-center">
-            <p className="text-sm text-gray-400">Aucun dossier Terrain TF</p>
+            <p className="text-sm text-gray-400">Aucun dossier Terrain Viabilisé</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -576,10 +579,10 @@ export default function TerrainsPage() {
                       <p className="text-sm font-bold text-gray-900">{m?.prenom} {m?.nom}</p>
                       <p className="text-xs text-gray-400">{infosMembre(m) || '—'}</p>
                     </div>
-                    <Badge variant="green">Terrain TF</Badge>
+                    <Badge variant="green">Terrain Viabilisé</Badge>
                   </div>
                   <div className="text-xs text-gray-500 mb-3 space-y-1">
-                    <p>{localisationSouscription(o, s.site, LABELS_SITE)} · {s.titre}</p>
+                    <p>{localisationSouscription(o, s.site, LABELS_SITE)}</p>
                     <p>{s.nb_terrains} parcelle{s.nb_terrains > 1 ? 's' : ''} × {formatCurrency(o?.prix_unitaire ?? Math.round(s.prix_total / (s.nb_terrains || 1)))}{o?.surface_m2 ? ` (${formatSurface(o.surface_m2)})` : ''}</p>
                     <p>Prix total : <span className="font-semibold text-gray-900">{formatCurrency(s.prix_total)}</span></p>
                     <p>Acompte : <span className={`font-semibold ${s.acompte_verse >= s.acompte_requis ? 'text-green-700' : 'text-amber-700'}`}>

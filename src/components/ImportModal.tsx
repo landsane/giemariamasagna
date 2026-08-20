@@ -116,7 +116,7 @@ export default function ImportModal({ type, membres = [], offres = [], onClose, 
           const membre    = findMembre(membres, row.prenom, row.nom)!;
           const rawType   = row.extra[0].toUpperCase();
           const type_villa: 'F2' | 'F3' | 'terrain' =
-            rawType === 'F3' ? 'F3' : (rawType === 'TF' || rawType === 'TERRAIN') ? 'terrain' : 'F2';
+            rawType === 'F3' ? 'F3' : (rawType === 'TF' || rawType === 'TERRAIN' || rawType === 'VIABILISE' || rawType === 'VIABILISÉ') ? 'terrain' : 'F2';
           const offre = type_villa === 'terrain'
             ? offres.find(o => o.type === 'terrain_tf'  && o.statut === 'active')
             : offres.find(o => o.type === 'logement' && o.sous_type === type_villa && o.statut === 'active');
@@ -193,7 +193,7 @@ export default function ImportModal({ type, membres = [], offres = [], onClose, 
               <p className="text-xs text-gray-400 mt-1.5">Le prix est calculé automatiquement depuis l'offre active.</p>
             )}
             {type === 'logements' && (
-              <p className="text-xs text-gray-400 mt-1.5">type_villa : F2, F3 ou TF. Le prix est calculé depuis l'offre active.</p>
+              <p className="text-xs text-gray-400 mt-1.5">type_villa : F2, F3 ou VIABILISE. Le prix est calculé depuis l'offre active.</p>
             )}
           </div>
 

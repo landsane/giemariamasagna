@@ -68,7 +68,7 @@ function BlocLogement({ s, offre }: { s: SouscriptionLogement; offre?: Offre }) 
   const dotClass = isTerrainTF ? 'bg-green-500'                       : s.type_villa === 'F3' ? 'bg-purple-500'                    : 'bg-indigo-500';
   const textCls  = isTerrainTF ? 'text-green-800'                     : s.type_villa === 'F3' ? 'text-purple-800'                  : 'text-indigo-800';
   const titre    = isTerrainTF
-    ? `Terrain TF · ${localisation} · ${s.nb_terrains} parcelle${s.nb_terrains > 1 ? 's' : ''}`
+    ? `Terrain Viabilisé · ${localisation} · ${s.nb_terrains} parcelle${s.nb_terrains > 1 ? 's' : ''}`
     : `Villa ${s.type_villa} · ${localisation} · ${s.titre}`;
 
   const sv = s.statut === 'livre' ? 'green' : s.statut === 'attribue' ? 'blue' : s.statut === 'valide' ? 'purple' : 'amber';
@@ -264,7 +264,7 @@ export default function MembresPage() {
   const filtres: { id: Filtre; label: string; count: number; color: string }[] = [
     { id: 'tous',           label: 'Tous',             count: stats.actifs,         color: 'bg-gray-700 text-white' },
     { id: 'terrain_simple', label: 'Terrains simples', count: stats.terrain_simple, color: 'bg-blue-600 text-white' },
-    { id: 'terrain_tf',     label: 'Terrains TF',      count: stats.terrain_tf,     color: 'bg-green-600 text-white' },
+    { id: 'terrain_tf',     label: 'Terrains Viabilisés', count: stats.terrain_tf,  color: 'bg-green-600 text-white' },
     { id: 'logement_f2',    label: 'Logements F2',     count: stats.logement_f2,    color: 'bg-indigo-600 text-white' },
     { id: 'logement_f3',    label: 'Logements F3',     count: stats.logement_f3,    color: 'bg-purple-600 text-white' },
     { id: 'les_deux',       label: 'Multi-offres',     count: stats.les_deux,       color: 'bg-amber-500 text-white' },
@@ -315,7 +315,7 @@ export default function MembresPage() {
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {[
             { label: 'Terrains simples', value: stats.terrain_simple, color: 'text-blue-600' },
-            { label: 'Terrains TF',      value: stats.terrain_tf,     color: 'text-green-600' },
+            { label: 'Terrains Viabilisés', value: stats.terrain_tf,  color: 'text-green-600' },
             { label: 'Logements F2',     value: stats.logement_f2,    color: 'text-indigo-600' },
             { label: 'Logements F3',     value: stats.logement_f3,    color: 'text-purple-600' },
             { label: 'Multi-offres',     value: stats.les_deux,       color: 'text-amber-600' },
