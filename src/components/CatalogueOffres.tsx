@@ -12,10 +12,13 @@ import { formatCurrency, calculerAcompte, calculerMensualite, formatSurface, tit
 // Logements. `types` détermine ce qui est géré ici, et les libellés/couleurs
 // des sections viennent de SECTIONS ci-dessous.
 
-const SECTIONS: { type: TypeOffre; label: string; color: string; desc: string }[] = [
-  { type: 'terrain_simple', label: 'Terrains Simples',    color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
-  { type: 'terrain_tf',     label: 'Terrains Viabilisés', color: 'text-green-600',  desc: 'Terrain viabilisé · Le Millénium 7SD' },
-  { type: 'logement',       label: 'Logements Sociaux',   color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
+// `adjectif` sert à composer le texte des cartes de résumé du catalogue
+// ("1 lotissement de terrains simples", "2 lotissements de terrains
+// viabilisés") — vide pour "logement", qui n'utilise pas ce vocabulaire.
+const SECTIONS: { type: TypeOffre; label: string; adjectif: string; color: string; desc: string }[] = [
+  { type: 'terrain_simple', label: 'Terrains Simples',    adjectif: 'simples',    color: 'text-blue-600',   desc: 'Parcelles GIE · paiement mensuel' },
+  { type: 'terrain_tf',     label: 'Terrains Viabilisés', adjectif: 'viabilisés', color: 'text-green-600',  desc: 'Terrain viabilisé · Le Millénium 7SD' },
+  { type: 'logement',       label: 'Logements Sociaux',   adjectif: '',           color: 'text-purple-600', desc: 'Villa F2 & F3 · Programme PICLOM' },
 ];
 
 const DEFAULTS: Record<TypeOffre, { taux_acompte: number; nb_mensualites: number }> = {
@@ -479,7 +482,11 @@ export default function CatalogueOffres({ types, offres, loading, onChanged, nou
               className={`bg-white rounded-xl border p-4 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${filtreType === s.type ? 'ring-2 ring-green-400 border-green-200' : 'border-emerald-100'}`}
             >
               <p className={`text-2xl font-black ${s.color}`}>{parType[s.type].length}</p>
-              <p className="text-xs font-semibold text-gray-700 mt-0.5">{s.label}</p>
+              <p className="text-xs font-semibold text-gray-700 mt-0.5">
+                {s.adjectif
+                  ? `Lotissement${parType[s.type].length > 1 ? 's' : ''} de terrains ${s.adjectif}`
+                  : s.label}
+              </p>
               <p className="text-[10px] text-gray-400 mt-0.5">{s.desc}</p>
             </button>
           ))}
